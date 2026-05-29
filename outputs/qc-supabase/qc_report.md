@@ -1,0 +1,58 @@
+# QC Report
+
+## Summary
+
+- `nhi_product_count`: 45038
+- `ingredient_coverage_count`: 45034
+- `ingredient_coverage_pct`: 99.99%
+- `tfda_join_coverage_count`: 45008
+- `tfda_join_coverage_pct`: 99.93%
+- `atc_presence_count`: 45038
+- `atc_presence_pct`: 100.00%
+- `atc_join_coverage_count`: 43600
+- `atc_join_coverage_pct`: 96.81%
+- `nhi_distinct_codes`: 45038
+- `all1_distinct_codes`: 45044
+- `overlap_distinct_codes`: 45038
+- `all1_only_distinct_codes`: 6
+- `all1_overlap_count`: 45038
+- `all1_overlap_pct`: 100.00%
+- `review_queue_count`: 7361
+- `alias_usage_total`: 0
+
+## Alias Usage
+
+- No alias remaps applied.
+
+## Top TFDA Mismatch Examples
+
+- `nhi_code=A000506100` `tfda_permit_no=衛署藥製字第000506號` `confidence=0.2307692307692307692307692308` `status=pending`
+  input: NIACINAMIDE (=NICOTINAMIDE) 50 MG+CALCIUM PHOSPHATE DIBASIC 50 MG+VITAMIN A (PALMITATE) 2500 IU+THIAMINE MONONITRATE 10 MG+RIBOFLAVIN (=VIT B2) 5 MG+PYRIDOXINE HCL 5 MG
+  tfda: CALCIUM PHOSPHATE DIBASIC ;; NICOTINAMIDE ;; THIAMINE MONONITRATE ;; VITAMIN A AND VITAMIN D ;; CYANOCOBALAMIN (VIT B12) ;; PYRIDOXINE(VITAMIN B6) ;; ASCORBIC ACID ALC ;; RIBOFLAVIN (VIT B2) ;; PANTOTHENATE (CALCIUM)
+- `nhi_code=A000706109` `tfda_permit_no=衛署藥製字第000706號` `confidence=0.5` `status=pending`
+  input: HOMATROPINE METHYLBROMIDE 2 MG/GM+MAGNESIUM ALUMINUM HYDROXIDE  MONOHYDRATE 400 MG/GM+MAGNESIUM TRISILICATE 300 MG/GM
+  tfda: HOMATROPINE METHYLBROMIDE ;; MAGNESIUM TRISILICATE ;; ALUMINUM MAGNESIUM HYDRATE
+- `nhi_code=A000862100` `tfda_permit_no=衛署藥製字第000862號` `confidence=0.3333333333333333333333333333` `status=pending`
+  input: SODIUM BICARBONATE 200 MG+MAGNESIUM OXIDE HEAVY 70 MG
+  tfda: SODIUM BICARBONATE ( EQ TO SODIUM HYDROGEN CARBONATE) ;; SCOPOLIA EXTRACT ;; CALCIUM CARBONATE PRECIPITATE (EQ TO PRECIPITATED CALCIUM CARBONATE) ;; MAGNESIUM OXIDE HEAVY
+- `nhi_code=A001208100` `tfda_permit_no=衛署藥製字第001208號` `confidence=0.5` `status=pending`
+  input: CARBETAPENTANE CITRATE 25 MG
+  tfda: CARBETAPENTANE CITRATE (eq to Pentoxyverine Citrate)
+- `nhi_code=A001353100` `tfda_permit_no=衛署藥製字第001353號` `confidence=0.5454545454545454545454545455` `status=pending`
+  input: PYRIDOXINE HCL 1 MG+NIACINAMIDE (=NICOTINAMIDE) 15 MG+RIBOFLAVIN (=VIT B2) 2 MG+CYANOCOBALAMIN (=VIT B12) 5 MG+INOSITOL (=MESO-INOSITOL) 5 MG+ASCORBIC ACID (=VIT C) 10 MG
+  tfda: NIACINAMIDE (NICOTINAMIDE) ;; PYRIDOXINE HCL ;; ASCORBIC ACID (VIT C) ;; INOSITOL (MESO-INOSITOL) ;; THIOCTIC ACID AMIDE (THIOCTAMIDE) ;; RIBOFLAVIN (VIT B2) ;; THIAMINE MONONITRATE ;; PANTOTHENATE CALCIUM ;; OROTIC ACID (VIT B13) ;; CYANOCOBALAMIN (VIT B12) ;; HYDROCHLORIC ACID
+- `nhi_code=A0016241G0` `tfda_permit_no=衛署藥製字第001624號` `confidence=0.25` `status=pending`
+  input: GLYCYRRHIZA EXTRACT .48 ML+OPIUM 2.5 MG+CAMPHOR 1.5 MG
+  tfda: GLYCYRRHIZA EXTRACT ;; OPIUM POWDER
+- `nhi_code=A001782100` `tfda_permit_no=衛署藥製字第001782號` `confidence=0.5` `status=pending`
+  input: CARBETAPENTANE CITRATE 25 MG
+  tfda: CARBETAPENTANE CITRATE (eq to Pentoxyverine Citrate)
+- `nhi_code=A001799100` `tfda_permit_no=衛署藥製字第001799號` `confidence=0.5555555555555555555555555556` `status=pending`
+  input: BUTYLSCOPOLAMINE BROMIDE (=HYOSCINE BUTYLBROMIDE) 2 MG+DICYCLOMINE HCL 2 MG+CHLORDIAZEPOXIDE (HCL) 5 MG+MAGNESIUM ALUMINUM HYDROXIDE CO-DRIED GEL 350 MG+MAGNESIUM OXIDE 40 MG+CHLOROPHYLL SODIUM COPPER 3 MG
+  tfda: MAGNESIUM ALUMINUM HYDROXIDE CO-DRIED GEL ;; BUTYLSCOPOLAMINE BROMIDE (EQ TO HYOSCINE-N-BUTYLBROMIDE) ;; SODIUM COPPER CHLOROPHYLLIN ;; CHLORDIAZEPOXIDE HCL ;; SYNTHETIC ALUMINUM SILICATE ;; MAGNESIUM OXIDE ;; DICYCLOMINE HCL
+- `nhi_code=A001923229` `tfda_permit_no=衛署藥製字第001923號` `confidence=0` `status=pending`
+  input: CALCIUM GLUCONATE 100 MG/ML
+  tfda: CALCIUM GLUCONATE MONOHYDRATE
+- `nhi_code=A002076100` `tfda_permit_no=衛署藥製字第002076號` `confidence=0` `status=pending`
+  input: ETHAMBUTOL 250 MG
+  tfda: ETHAMBUTOL HCL

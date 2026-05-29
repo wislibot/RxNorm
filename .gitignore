@@ -1,0 +1,15 @@
+.env
+.env.*
+*.env
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+node_modules/
+.expo/
+dist/
+*.tsbuildinfo
+
+Datasets/*.TXT
+outputs/exports/raw_all1_price_history.csv
+outputs/exports/raw_all1_price_history.csv.gz

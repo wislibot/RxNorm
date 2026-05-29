@@ -1,0 +1,17 @@
+{
+  "all1_distinct_codes": 45044,
+  "overlap_codes": 45038,
+  "assertion_check": {
+    "rows": 45044,
+    "nulls": 0,
+    "blanks": 0
+  },
+  "preserved_all1_only_codes": [
+    "BC28352100",
+    "BC28775100",
+    "BC28776100",
+    "KC01233224",
+    "KC01289209",
+    "X000370265"
+  ]
+}

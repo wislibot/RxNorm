@@ -1,0 +1,130 @@
+{
+  "generated_at_utc": "2026-05-20T11:33:28.377674+00:00",
+  "git_commit": null,
+  "tables": {
+    "raw_nhi_items": {
+      "db_rowcount": 224207,
+      "paging_column": "raw_nhi_item_id",
+      "key_column": "nhi_code",
+      "sample_values": [
+        "A000015421",
+        "A000015435",
+        "A000023100"
+      ],
+      "exported_rows": 224207,
+      "sample_hits": {
+        "A000015421": true,
+        "A000015435": true,
+        "A000023100": true
+      },
+      "sha256": "acf1c7779d78008af06e192131e369c25b1c14b211b49e33a35e2b2eb4ea356d",
+      "compressed_bytes": 15074516,
+      "artifact": "outputs\\exports\\raw_drop_all\\raw_nhi_items.csv.gz"
+    },
+    "raw_tfda_permits_active": {
+      "db_rowcount": 26083,
+      "paging_column": "raw_tfda_permit_active_id",
+      "key_column": "tfda_permit_no",
+      "sample_values": [
+        "內衛成製字第000075號",
+        "內衛成製字第000093號",
+        "內衛成製字第000114號"
+      ],
+      "exported_rows": 26083,
+      "sample_hits": {
+        "內衛成製字第000075號": true,
+        "內衛成製字第000093號": true,
+        "內衛成製字第000114號": true
+      },
+      "sha256": "f2c8cc26f4a8c19347fc93443d247e15bc6dcd9d7bd326a338501b35ea61b11e",
+      "compressed_bytes": 6376153,
+      "artifact": "outputs\\exports\\raw_drop_all\\raw_tfda_permits_active.csv.gz"
+    },
+    "raw_tfda_permits_all": {
+      "db_rowcount": 71775,
+      "paging_column": "raw_tfda_permit_all_id",
+      "key_column": "tfda_permit_no",
+      "sample_values": [
+        "內衛成製字第000012號",
+        "內衛成製字第000029號",
+        "內衛成製字第000030號"
+      ],
+      "exported_rows": 71775,
+      "sample_hits": {
+        "內衛成製字第000012號": true,
+        "內衛成製字第000029號": true,
+        "內衛成製字第000030號": true
+      },
+      "sha256": "b24d5a7b282e46cc472b04ec0b17fe67d50631b3ef91c4202c4f1e4461ab1a07",
+      "compressed_bytes": 17329113,
+      "artifact": "outputs\\exports\\raw_drop_all\\raw_tfda_permits_all.csv.gz"
+    },
+    "raw_atc_ddd": {
+      "db_rowcount": 29533,
+      "paging_column": "raw_atc_ddd_id",
+      "key_column": "atc_code",
+      "sample_values": [
+        "A",
+        "A01",
+        "A01A"
+      ],
+      "exported_rows": 29533,
+      "sample_hits": {
+        "A": true,
+        "A01": true,
+        "A01A": true
+      },
+      "sha256": "cf17569a6d7dbcb87a0d4c25737dadc6c148850225cab3f2a959b46136a4af24",
+      "compressed_bytes": 761976,
+      "artifact": "outputs\\exports\\raw_drop_all\\raw_atc_ddd.csv.gz"
+    },
+    "raw_all1_code_set": {
+      "db_rowcount": 45044,
+      "paging_column": "nhi_code",
+      "key_column": "nhi_code",
+      "sample_values": [
+        "BC28352100",
+        "BC28775100",
+        "BC28776100",
+        "KC01233224",
+        "KC01289209",
+        "X000370265"
+      ],
+      "exported_rows": 45044,
+      "sample_hits": {
+        "BC28352100": true,
+        "BC28775100": true,
+        "BC28776100": true,
+        "KC01233224": true,
+        "KC01289209": true,
+        "X000370265": true
+      },
+      "sha256": "df25bb8470c5c914d67bba7740a4bcd42d54406aa8f2dd2739e25d4cbff99e55",
+      "compressed_bytes": 129886,
+      "artifact": "outputs\\exports\\raw_drop_all\\raw_all1_code_set.csv.gz"
+    },
+    "raw_nhi_component_map": {
+      "db_rowcount": 5282,
+      "paging_column": "raw_nhi_component_map_id",
+      "key_column": "component_code",
+      "sample_values": [
+        "0000038000",
+        "0000047000",
+        "0000084000"
+      ],
+      "exported_rows": 5282,
+      "sample_hits": {
+        "0000038000": true,
+        "0000047000": true,
+        "0000084000": true
+      },
+      "sha256": "413eb8efb7c59b762be13d0659d2522e41158fe515a38253ea60f075d909f35b",
+      "compressed_bytes": 106529,
+      "artifact": "outputs\\exports\\raw_drop_all\\raw_nhi_component_map.csv.gz"
+    }
+  },
+  "schema_snapshots": {
+    "json": "outputs\\exports\\raw_drop_all\\raw_schema_columns.json",
+    "csv": "outputs\\exports\\raw_drop_all\\raw_schema_columns.csv"
+  }
+}

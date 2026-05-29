@@ -1,0 +1,474 @@
+import { getSupabaseClient, type AppSupabaseClient } from '../lib/supabase';
+import { extractDetectedItems } from '../detectedItems/extractDetectedItems';
+import { analyzeMedicationLineGrouping, groupMedicationLinesIntoItems } from '../ocr/groupMedicationLines';
+import { createUploadImage, createThumbnailImage } from '../photos/processPhoto';
+import { extractCaseFields } from '../ocr/structuredCaseExtractor';
+import { mapRemoteCaseFields } from '../ocr/ocr';
+import type { BrandMatch, CaseFields } from '../types/caseFields';
+import type { AutoShareStatus, CaseRecord, CaseSummary, CreateCaseInput, DetectedItem, OcrSections } from '../types/case';
+
+const CASE_PHOTO_BUCKET = 'rx-case-photos';
+const SIGNED_URL_EXPIRY_SECONDS = 60 * 60 * 24;
+
+type RxCaseRow = {
+  case_id: string;
+  case_type: CaseRecord['caseType'];
+  created_at: string;
+  updated_at: string;
+  ocr_raw_text: string;
+  ocr_sections: {
+    medication_lines?: string[] | null;
+    instruction_lines?: string[] | null;
+    indications_lines?: string[] | null;
+    warnings_lines?: string[] | null;
+    side_effects_lines?: string[] | null;
+    dispensing_date_lines?: string[] | null;
+    quantity_lines?: string[] | null;
+    pharmacist_lines?: string[] | null;
+    case_fields?: CaseFields | null;
+  } | null;
+  detected_items: Array<{
+    source?: 'ocr_line';
+    raw_text?: string | null;
+    display_name?: string | null;
+    match_status?: 'matched' | 'unmatched' | null;
+    confidence?: number | null;
+    ingredient_id?: string | null;
+    match_method?: 'canonical_exact' | 'alias_exact' | 'paren_alias_exact' | null;
+    nhi_code?: string | null;
+    note?: string | null;
+  }> | null;
+  photo_paths: string[] | null;
+  ingredient_ids: string[] | null;
+  share_to_all_care_teams: boolean;
+};
+
+type RxMedicationLineMatchRow = {
+  input_index: number;
+  input_text: string;
+  normalized_text: string;
+  match_status: 'matched' | 'unmatched';
+  ingredient_id: string | null;
+  ingredient_canonical_name: string | null;
+  match_method: 'canonical_exact' | 'alias_exact' | 'paren_alias_exact' | null;
+  confidence: number | null;
+};
+
+type RxBrandLineMatchRow = {
+  input_index: number;
+  input_text: string;
+  normalized_text: string;
+  match_status: 'matched' | 'unmatched';
+  product_id: string | null;
+  product_display_name: string | null;
+  nhi_code: string | null;
+  match_method: 'product_exact' | 'alias_exact' | null;
+  confidence: number | null;
+  product_name_zh: string | null;
+  product_name_en: string | null;
+};
+
+function mapDetectedItemsFromDb(items: RxCaseRow['detected_items']): DetectedItem[] {
+  return (items ?? []).map((item) => ({
+    confidence: item.confidence ?? null,
+    displayName: item.display_name ?? '',
+    ingredientId: item.ingredient_id ?? undefined,
+    matchMethod: item.match_method ?? null,
+    matchStatus: item.match_status === 'matched' ? 'matched' : 'unmatched',
+    nhiCode: item.nhi_code ?? undefined,
+    note: item.note ?? null,
+    rawText: item.raw_text ?? undefined,
+    source: item.source ?? 'ocr_line',
+  }));
+}
+
+async function requireCurrentUserId(client: AppSupabaseClient) {
+  const { data, error } = await client.auth.getUser();
+  if (error) {
+    throw error;
+  }
+  const userId = data.user?.id;
+  if (!userId) {
+    throw new Error('No authenticated user is available to create or load a case.');
+  }
+  return userId;
+}
+
+async function readPhotoAsArrayBuffer(uri: string) {
+  const response = await fetch(uri);
+  return {
+    arrayBuffer: await response.arrayBuffer(),
+    contentType: response.headers.get('Content-Type') || 'image/jpeg',
+  };
+}
+
+async function buildSignedUrls(client: AppSupabaseClient, photoPaths: string[]) {
+  const urls = await Promise.all(
+    photoPaths.map(async (path) => {
+      const { data, error } = await client.storage.from(CASE_PHOTO_BUCKET).createSignedUrl(path, SIGNED_URL_EXPIRY_SECONDS);
+      if (error) {
+        throw error;
+      }
+      return data.signedUrl;
+    }),
+  );
+
+  return urls;
+}
+
+function getMedicationCandidateLines(input: CreateCaseInput) {
+  const groupingDiagnostics = analyzeMedicationLineGrouping(input.sectionedOcr?.sections.medication.lines ?? []);
+  const groupedMedicationItems = groupingDiagnostics.groupedItems;
+
+  if (__DEV__ && process.env.NODE_ENV !== 'test') {
+    console.log('[createCase] medication grouping', {
+      groupedItemsCount: groupedMedicationItems.length,
+      groupedItemsPreview: groupedMedicationItems.slice(0, 3).map((item) => item.text.slice(0, 80)),
+      medicationLinesCount: groupingDiagnostics.candidateLines.length,
+    });
+  }
+
+  if (groupedMedicationItems.length > 0) {
+    return groupedMedicationItems.map((item) => item.text);
+  }
+
+  const sectionLines = input.sectionedOcr?.sections.medication.texts ?? [];
+  const trimmedSectionLines = sectionLines.map((line) => line.trim()).filter(Boolean);
+  if (sectionLines.length > 0) {
+    return trimmedSectionLines;
+  }
+
+  return extractDetectedItems({
+    ocrRawText: input.ocrRawText,
+    sectionedOcr: input.sectionedOcr,
+  }).map((item) => item.displayName);
+}
+
+function buildStoredOcrSections(
+  input: CreateCaseInput,
+  brandNames?: string[],
+  brandMatches?: BrandMatch[],
+  remoteCaseFields?: Partial<CaseFields> | null,
+): OcrSections {
+  const sections = input.sectionedOcr?.sections;
+  let caseFields: CaseFields;
+
+  if (remoteCaseFields && Object.keys(remoteCaseFields).length > 0) {
+    caseFields = remoteCaseFields as CaseFields;
+  } else {
+    caseFields = sections
+      ? extractCaseFields(input.ocrRawText, input.sectionedOcr)
+      : extractCaseFields(input.ocrRawText);
+  }
+
+  if (brandNames?.length || brandMatches?.length) {
+    caseFields.brandNames = brandNames;
+    caseFields.brandMatches = brandMatches;
+  }
+
+  return {
+    medicationLines: sections?.medication.texts ?? [],
+    instructionLines: sections?.instruction.texts ?? [],
+    indicationsLines: sections?.indications.texts ?? [],
+    warningsLines: sections?.warnings.texts ?? [],
+    sideEffectsLines: sections?.side_effects.texts ?? [],
+    dispensingDateLines: sections?.dispensing_date.texts ?? [],
+    quantityLines: sections?.quantity.texts ?? [],
+    pharmacistLines: sections?.pharmacist.texts ?? [],
+    caseFields,
+    remoteModel: input.sectionedOcr?.modelData ?? null,
+  };
+}
+
+function mapMedicationMatchesToDetectedItems(
+  medicationLines: string[],
+  matchRows: RxMedicationLineMatchRow[] | null | undefined,
+): { detectedItems: Array<Record<string, unknown>>; ingredientIds: string[] } {
+  if (!medicationLines.length) {
+    return { detectedItems: [], ingredientIds: [] };
+  }
+
+  const rowsByIndex = new Map<number, RxMedicationLineMatchRow>();
+  for (const row of matchRows ?? []) {
+    rowsByIndex.set(row.input_index, row);
+  }
+
+  const ingredientIds = new Set<string>();
+  const detectedItems = medicationLines.map((line, index) => {
+    const match = rowsByIndex.get(index);
+    const isMatched = match?.match_status === 'matched' && !!match.ingredient_id;
+
+    if (isMatched) {
+      ingredientIds.add(match.ingredient_id);
+    }
+
+    return {
+      confidence: match?.confidence ?? null,
+      display_name: match?.input_text ?? line,
+      ingredient_id: isMatched ? match?.ingredient_id : null,
+      match_method: match?.match_method ?? null,
+      match_status: isMatched ? 'matched' : 'unmatched',
+      nhi_code: null,
+      note: null,
+      raw_text: match?.input_text ?? line,
+      source: 'ocr_line',
+    };
+  });
+
+  return {
+    detectedItems,
+    ingredientIds: Array.from(ingredientIds),
+  };
+}
+
+export async function createCase(input: CreateCaseInput, client: AppSupabaseClient = getSupabaseClient()) {
+  const userId = await requireCurrentUserId(client);
+  const medicationLines = getMedicationCandidateLines(input);
+
+  const remoteCaseFields = mapRemoteCaseFields(
+    input.sectionedOcr?.modelData?.case_fields ?? null,
+  );
+
+  const storedOcrSections = buildStoredOcrSections(input, undefined, undefined, remoteCaseFields);
+  const ingredientResult = await client.rpc('rx_match_medication_lines', {
+    medication_lines: medicationLines,
+  });
+
+  let brandResult: { data: RxBrandLineMatchRow[] } = { data: [] };
+  try {
+    brandResult = await client.rpc('rx_match_brand_lines', {
+      brand_lines: medicationLines,
+    });
+  } catch {
+    // brand matching is non-critical; proceed without it
+  }
+
+  const { data: matchedRows, error: matchError } = ingredientResult;
+
+  if (matchError) {
+    console.error('[createCase] rx_match_medication_lines error', matchError);
+    throw matchError;
+  }
+
+  const brandRows = (brandResult.data ?? []) as RxBrandLineMatchRow[];
+  const brandMatches = brandRows
+    .filter((row) => row.match_status === 'matched')
+    .map((row) => ({
+      confidence: row.confidence ?? undefined,
+      displayName: row.product_display_name ?? row.input_text,
+      nhiCode: row.nhi_code ?? undefined,
+      productId: row.product_id ?? undefined,
+      nameZh: row.product_name_zh,
+      nameEn: row.product_name_en,
+    }));
+  const brandNames = brandMatches.map((m) => {
+    const zh = m.nameZh?.trim();
+    const en = m.nameEn?.trim();
+    if (zh && en) return `${zh} (${en})`;
+    if (zh) return zh;
+    if (en) return en;
+    return m.displayName;
+  });
+
+  const finalOcrSections = buildStoredOcrSections(
+    input,
+    brandNames.length ? brandNames : undefined,
+    brandMatches.length ? brandMatches : undefined,
+    remoteCaseFields,
+  );
+
+  const { detectedItems, ingredientIds } = mapMedicationMatchesToDetectedItems(
+    medicationLines,
+    (matchedRows ?? []) as RxMedicationLineMatchRow[],
+  );
+  const uniqueIngredientIds = Array.from(new Set(ingredientIds));
+
+  const { data: insertedCase, error: insertError } = await client
+    .from('rx_cases')
+    .insert({
+      case_type: input.caseType,
+      detected_items: detectedItems,
+      ingredient_ids: uniqueIngredientIds,
+      ocr_raw_text: input.ocrRawText,
+      ocr_sections: {
+        medication_lines: finalOcrSections.medicationLines,
+        instruction_lines: finalOcrSections.instructionLines,
+        indications_lines: finalOcrSections.indicationsLines,
+        warnings_lines: finalOcrSections.warningsLines,
+        side_effects_lines: finalOcrSections.sideEffectsLines,
+        dispensing_date_lines: finalOcrSections.dispensingDateLines,
+        quantity_lines: finalOcrSections.quantityLines,
+        pharmacist_lines: finalOcrSections.pharmacistLines,
+        case_fields: finalOcrSections.caseFields,
+        remote_model: finalOcrSections.remoteModel ?? null,
+      },
+      photo_paths: [],
+      share_to_all_care_teams: true,
+      user_id: userId,
+    })
+    .select('case_id')
+    .single();
+
+  if (insertError) {
+    throw insertError;
+  }
+
+  const caseId = insertedCase.case_id;
+  const uploadedPhotoPaths: string[] = [];
+
+  for (const [index, uri] of input.photoUris.entries()) {
+    const uploadImage = await createUploadImage(uri);
+    const path = `${userId}/${caseId}/${index}.jpg`;
+    const file = await readPhotoAsArrayBuffer(uploadImage.uri);
+    const { error: uploadError } = await client.storage.from(CASE_PHOTO_BUCKET).upload(path, file.arrayBuffer, {
+      contentType: uploadImage.mimeType,
+      upsert: false,
+    });
+
+    if (uploadError) {
+      throw uploadError;
+    }
+
+    uploadedPhotoPaths.push(path);
+
+    const thumb = await createThumbnailImage(uri);
+    const thumbPath = `${userId}/${caseId}/${index}_thumb.jpg`;
+    const thumbFile = await readPhotoAsArrayBuffer(thumb.uri);
+    const { error: thumbError } = await client.storage.from(CASE_PHOTO_BUCKET).upload(thumbPath, thumbFile.arrayBuffer, {
+      contentType: thumb.mimeType,
+      upsert: false,
+    });
+
+    if (thumbError) {
+      throw thumbError;
+    }
+  }
+
+  const { error: updateError } = await client
+    .from('rx_cases')
+    .update({
+      photo_paths: uploadedPhotoPaths,
+    })
+    .eq('case_id', caseId);
+
+  if (updateError) {
+    throw updateError;
+  }
+
+  return { caseId };
+}
+
+export async function getCase(caseId: string, client: AppSupabaseClient = getSupabaseClient()): Promise<CaseRecord> {
+  await requireCurrentUserId(client);
+
+  const { data, error } = await client
+    .from('rx_cases')
+    .select('case_id, case_type, created_at, updated_at, ocr_raw_text, ocr_sections, detected_items, photo_paths, ingredient_ids, share_to_all_care_teams')
+    .eq('case_id', caseId)
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  const row = data as RxCaseRow;
+  const photoPaths = row.photo_paths ?? [];
+  const photoUrls = await buildSignedUrls(client, photoPaths);
+  const thumbPaths = photoPaths.map((p) => p.replace(/\.jpg$/, '_thumb.jpg'));
+  const thumbUrls = await buildSignedUrls(client, thumbPaths).catch(() => [] as string[]);
+
+  return {
+    caseId: row.case_id,
+    caseType: row.case_type,
+    createdAt: row.created_at,
+    detectedItems: mapDetectedItemsFromDb(row.detected_items),
+    updatedAt: row.updated_at,
+    ingredientIds: row.ingredient_ids ?? [],
+    ocrRawText: row.ocr_raw_text,
+    ocrSections: {
+      medicationLines: row.ocr_sections?.medication_lines ?? [],
+      instructionLines: row.ocr_sections?.instruction_lines ?? [],
+      indicationsLines: row.ocr_sections?.indications_lines ?? [],
+      warningsLines: row.ocr_sections?.warnings_lines ?? [],
+      sideEffectsLines: row.ocr_sections?.side_effects_lines ?? [],
+      dispensingDateLines: row.ocr_sections?.dispensing_date_lines ?? [],
+      quantityLines: row.ocr_sections?.quantity_lines ?? [],
+      pharmacistLines: row.ocr_sections?.pharmacist_lines ?? [],
+      caseFields: row.ocr_sections?.case_fields ?? null,
+      remoteModel: row.ocr_sections?.remote_model ?? null,
+    },
+    photoPaths,
+    photoUrls,
+    thumbUrls,
+    shareToAllCareTeams: row.share_to_all_care_teams,
+  };
+}
+
+export async function listCases(
+  { limit = 20 }: { limit?: number } = {},
+  client: AppSupabaseClient = getSupabaseClient(),
+): Promise<CaseSummary[]> {
+  await requireCurrentUserId(client);
+
+  const { data, error } = await client
+    .from('rx_cases')
+    .select('case_id, case_type, created_at, ocr_raw_text, detected_items, photo_paths')
+    .order('created_at', { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    throw error;
+  }
+
+  const rows = (data ?? []) as Array<Pick<RxCaseRow, 'case_id' | 'case_type' | 'created_at' | 'ocr_raw_text' | 'detected_items' | 'photo_paths'>>;
+
+  return Promise.all(
+    rows.map(async (row) => {
+      const firstPath = row.photo_paths?.[0];
+      let firstPhotoUrl: string | null = null;
+      let firstThumbUrl: string | null = null;
+
+      if (firstPath) {
+        const thumbPath = firstPath.replace(/\.jpg$/, '_thumb.jpg');
+
+        const { data: thumbData, error: thumbError } = await client.storage
+          .from(CASE_PHOTO_BUCKET)
+          .createSignedUrl(thumbPath, SIGNED_URL_EXPIRY_SECONDS);
+
+        if (!thumbError && thumbData) {
+          firstThumbUrl = thumbData.signedUrl;
+        }
+
+        const { data: signedData, error: signedError } = await client.storage
+          .from(CASE_PHOTO_BUCKET)
+          .createSignedUrl(firstPath, SIGNED_URL_EXPIRY_SECONDS);
+
+        if (signedError) {
+          throw signedError;
+        }
+
+        firstPhotoUrl = signedData.signedUrl;
+      }
+
+      const detectedItems = mapDetectedItemsFromDb(row.detected_items);
+      const ocrPreview = row.ocr_raw_text.split(/\r?\n/).map((line) => line.trim()).find(Boolean) ?? '';
+
+      return {
+        caseId: row.case_id,
+        caseType: row.case_type,
+        createdAt: row.created_at,
+        detectedItemCount: detectedItems.length,
+        firstPhotoUrl,
+        firstThumbUrl,
+        ocrPreview,
+      };
+    }),
+  );
+}
+
+export async function getMockAutoShareStatus(): Promise<AutoShareStatus> {
+  return {
+    isAutoShareDefault: true,
+    sharedCareTeamCount: 2,
+  };
+}

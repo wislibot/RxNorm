@@ -1,0 +1,4 @@
+[console_scripts]
+rxnorm-import-raw = etl.import_raw:main
+rxnorm-rebuild-curated = etl.rebuild_curated:main
+rxnorm-report-qc = etl.report_qc:main

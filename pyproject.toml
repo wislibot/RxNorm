@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rxnorm-taiwan"
+version = "0.1.0"
+description = "Taiwan RxNorm ETL and Supabase foundation"
+requires-python = ">=3.11"
+dependencies = ["psycopg[binary]>=3.2"]
+
+[project.scripts]
+rxnorm-import-raw = "etl.import_raw:main"
+rxnorm-rebuild-curated = "etl.rebuild_curated:main"
+rxnorm-report-qc = "etl.report_qc:main"
+
+[tool.setuptools]
+package-dir = {"" = "."}
+
+[tool.setuptools.packages.find]
+include = ["etl*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

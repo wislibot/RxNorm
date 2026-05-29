@@ -1,0 +1,13 @@
+{
+  "raw_all1_rows": 224261,
+  "raw_all1_distinct_codes": 45044,
+  "rx_nhi_distinct_codes": 45038,
+  "all1_only_codes": [
+    "BC28352100",
+    "BC28775100",
+    "BC28776100",
+    "KC01233224",
+    "KC01289209",
+    "X000370265"
+  ]
+}

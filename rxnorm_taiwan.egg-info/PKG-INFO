@@ -1,0 +1,6 @@
+Metadata-Version: 2.4
+Name: rxnorm-taiwan
+Version: 0.1.0
+Summary: Taiwan RxNorm ETL and Supabase foundation
+Requires-Python: >=3.11
+Requires-Dist: psycopg[binary]>=3.2

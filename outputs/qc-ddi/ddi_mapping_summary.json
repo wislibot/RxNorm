@@ -1,0 +1,507 @@
+{
+  "ddinter_unique_names": 1902,
+  "mapped_names": 717,
+  "mapped_pct": "37.70%",
+  "top_unmapped_names": [
+    {
+      "ddinter_drug_name": "Idelalisib",
+      "ddinter_ids": "DDInter905",
+      "occurrences_in_pairs": 881
+    },
+    {
+      "ddinter_drug_name": "Triamcinolone (ophthalmic)",
+      "ddinter_ids": "DDInter1857",
+      "occurrences_in_pairs": 867
+    },
+    {
+      "ddinter_drug_name": "Rucaparib",
+      "ddinter_ids": "DDInter1626",
+      "occurrences_in_pairs": 741
+    },
+    {
+      "ddinter_drug_name": "Sibutramine",
+      "ddinter_ids": "DDInter1665",
+      "occurrences_in_pairs": 688
+    },
+    {
+      "ddinter_drug_name": "Fostamatinib",
+      "ddinter_ids": "DDInter785",
+      "occurrences_in_pairs": 681
+    },
+    {
+      "ddinter_drug_name": "Chloroquine",
+      "ddinter_ids": "DDInter359",
+      "occurrences_in_pairs": 667
+    },
+    {
+      "ddinter_drug_name": "Panobinostat",
+      "ddinter_ids": "DDInter1387",
+      "occurrences_in_pairs": 666
+    },
+    {
+      "ddinter_drug_name": "Hydrocodone",
+      "ddinter_ids": "DDInter884",
+      "occurrences_in_pairs": 657
+    },
+    {
+      "ddinter_drug_name": "Dicoumarol",
+      "ddinter_ids": "DDInter542",
+      "occurrences_in_pairs": 640
+    },
+    {
+      "ddinter_drug_name": "Picosulfuric acid",
+      "ddinter_ids": "DDInter1464",
+      "occurrences_in_pairs": 624
+    },
+    {
+      "ddinter_drug_name": "Troglitazone",
+      "ddinter_ids": "DDInter1881",
+      "occurrences_in_pairs": 624
+    },
+    {
+      "ddinter_drug_name": "Somatotropin",
+      "ddinter_ids": "DDInter1699",
+      "occurrences_in_pairs": 623
+    },
+    {
+      "ddinter_drug_name": "Bexarotene",
+      "ddinter_ids": "DDInter202",
+      "occurrences_in_pairs": 610
+    },
+    {
+      "ddinter_drug_name": "Osilodrostat",
+      "ddinter_ids": "DDInter1351",
+      "occurrences_in_pairs": 596
+    },
+    {
+      "ddinter_drug_name": "Omacetaxine mepesuccinate",
+      "ddinter_ids": "DDInter1335",
+      "occurrences_in_pairs": 590
+    },
+    {
+      "ddinter_drug_name": "Somatrem",
+      "ddinter_ids": "DDInter1700",
+      "occurrences_in_pairs": 587
+    },
+    {
+      "ddinter_drug_name": "Epirubicin",
+      "ddinter_ids": "DDInter655",
+      "occurrences_in_pairs": 578
+    },
+    {
+      "ddinter_drug_name": "Magnesium citrate",
+      "ddinter_ids": "DDInter1115",
+      "occurrences_in_pairs": 573
+    },
+    {
+      "ddinter_drug_name": "Deflazacort",
+      "ddinter_ids": "DDInter492",
+      "occurrences_in_pairs": 568
+    },
+    {
+      "ddinter_drug_name": "Encorafenib",
+      "ddinter_ids": "DDInter640",
+      "occurrences_in_pairs": 558
+    },
+    {
+      "ddinter_drug_name": "Ivacaftor",
+      "ddinter_ids": "DDInter997",
+      "occurrences_in_pairs": 558
+    },
+    {
+      "ddinter_drug_name": "Tripelennamine",
+      "ddinter_ids": "DDInter1878",
+      "occurrences_in_pairs": 553
+    },
+    {
+      "ddinter_drug_name": "Orciprenaline",
+      "ddinter_ids": "DDInter1346",
+      "occurrences_in_pairs": 548
+    },
+    {
+      "ddinter_drug_name": "Asparaginase Escherichia coli",
+      "ddinter_ids": "DDInter127",
+      "occurrences_in_pairs": 542
+    },
+    {
+      "ddinter_drug_name": "Formoterol",
+      "ddinter_ids": "DDInter776",
+      "occurrences_in_pairs": 540
+    },
+    {
+      "ddinter_drug_name": "Insulin human (inhalation, rapid acting)",
+      "ddinter_ids": "DDInter935",
+      "occurrences_in_pairs": 539
+    },
+    {
+      "ddinter_drug_name": "Isoprenaline",
+      "ddinter_ids": "DDInter987",
+      "occurrences_in_pairs": 537
+    },
+    {
+      "ddinter_drug_name": "Doxorubicin",
+      "ddinter_ids": "DDInter596",
+      "occurrences_in_pairs": 530
+    },
+    {
+      "ddinter_drug_name": "Trabectedin",
+      "ddinter_ids": "DDInter1840",
+      "occurrences_in_pairs": 528
+    },
+    {
+      "ddinter_drug_name": "Bupropion",
+      "ddinter_ids": "DDInter252",
+      "occurrences_in_pairs": 524
+    },
+    {
+      "ddinter_drug_name": "Pegaspargase",
+      "ddinter_ids": "DDInter1404",
+      "occurrences_in_pairs": 523
+    },
+    {
+      "ddinter_drug_name": "Methdilazine",
+      "ddinter_ids": "DDInter1168",
+      "occurrences_in_pairs": 520
+    },
+    {
+      "ddinter_drug_name": "Sunitinib",
+      "ddinter_ids": "DDInter1731",
+      "occurrences_in_pairs": 514
+    },
+    {
+      "ddinter_drug_name": "Macimorelin",
+      "ddinter_ids": "DDInter1110",
+      "occurrences_in_pairs": 502
+    },
+    {
+      "ddinter_drug_name": "Glasdegib",
+      "ddinter_ids": "DDInter822",
+      "occurrences_in_pairs": 500
+    },
+    {
+      "ddinter_drug_name": "Roflumilast",
+      "ddinter_ids": "DDInter1614",
+      "occurrences_in_pairs": 498
+    },
+    {
+      "ddinter_drug_name": "Ivosidenib",
+      "ddinter_ids": "DDInter1000",
+      "occurrences_in_pairs": 497
+    },
+    {
+      "ddinter_drug_name": "Insulin aspart (aspart)",
+      "ddinter_ids": "DDInter929",
+      "occurrences_in_pairs": 496
+    },
+    {
+      "ddinter_drug_name": "Polyethylene glycol (3350 with electrolytes)",
+      "ddinter_ids": "DDInter1487",
+      "occurrences_in_pairs": 496
+    },
+    {
+      "ddinter_drug_name": "Insulin glulisine",
+      "ddinter_ids": "DDInter933",
+      "occurrences_in_pairs": 495
+    },
+    {
+      "ddinter_drug_name": "Insulin human (isophane)",
+      "ddinter_ids": "DDInter936",
+      "occurrences_in_pairs": 495
+    },
+    {
+      "ddinter_drug_name": "Insulin human (zinc)",
+      "ddinter_ids": "DDInter939",
+      "occurrences_in_pairs": 495
+    },
+    {
+      "ddinter_drug_name": "Insulin human (regular)",
+      "ddinter_ids": "DDInter937",
+      "occurrences_in_pairs": 494
+    },
+    {
+      "ddinter_drug_name": "Insulin human (zinc extended)",
+      "ddinter_ids": "DDInter938",
+      "occurrences_in_pairs": 494
+    },
+    {
+      "ddinter_drug_name": "Anagrelide",
+      "ddinter_ids": "DDInter93",
+      "occurrences_in_pairs": 493
+    },
+    {
+      "ddinter_drug_name": "Doxorubicin (liposomal)",
+      "ddinter_ids": "DDInter597",
+      "occurrences_in_pairs": 483
+    },
+    {
+      "ddinter_drug_name": "Elagolix",
+      "ddinter_ids": "DDInter625",
+      "occurrences_in_pairs": 463
+    },
+    {
+      "ddinter_drug_name": "Romidepsin",
+      "ddinter_ids": "DDInter1616",
+      "occurrences_in_pairs": 463
+    },
+    {
+      "ddinter_drug_name": "Pirbuterol",
+      "ddinter_ids": "DDInter1476",
+      "occurrences_in_pairs": 457
+    },
+    {
+      "ddinter_drug_name": "Daunorubicin (liposomal)",
+      "ddinter_ids": "DDInter486",
+      "occurrences_in_pairs": 453
+    },
+    {
+      "ddinter_drug_name": "Daunorubicin",
+      "ddinter_ids": "DDInter485",
+      "occurrences_in_pairs": 452
+    },
+    {
+      "ddinter_drug_name": "Eribulin",
+      "ddinter_ids": "DDInter666",
+      "occurrences_in_pairs": 452
+    },
+    {
+      "ddinter_drug_name": "Idarubicin",
+      "ddinter_ids": "DDInter904",
+      "occurrences_in_pairs": 450
+    },
+    {
+      "ddinter_drug_name": "Dolasetron",
+      "ddinter_ids": "DDInter581",
+      "occurrences_in_pairs": 442
+    },
+    {
+      "ddinter_drug_name": "Toremifene",
+      "ddinter_ids": "DDInter1837",
+      "occurrences_in_pairs": 442
+    },
+    {
+      "ddinter_drug_name": "Tioguanine",
+      "ddinter_ids": "DDInter1814",
+      "occurrences_in_pairs": 437
+    },
+    {
+      "ddinter_drug_name": "Iohexol",
+      "ddinter_ids": "DDInter960",
+      "occurrences_in_pairs": 432
+    },
+    {
+      "ddinter_drug_name": "Iopamidol",
+      "ddinter_ids": "DDInter961",
+      "occurrences_in_pairs": 432
+    },
+    {
+      "ddinter_drug_name": "Upadacitinib",
+      "ddinter_ids": "DDInter1901",
+      "occurrences_in_pairs": 430
+    },
+    {
+      "ddinter_drug_name": "Insulin aspart (aspart protamine)",
+      "ddinter_ids": "DDInter928",
+      "occurrences_in_pairs": 429
+    },
+    {
+      "ddinter_drug_name": "Insulin lispro (protamine)",
+      "ddinter_ids": "DDInter941",
+      "occurrences_in_pairs": 429
+    },
+    {
+      "ddinter_drug_name": "Dronabinol",
+      "ddinter_ids": "DDInter601",
+      "occurrences_in_pairs": 423
+    },
+    {
+      "ddinter_drug_name": "Naltrexone",
+      "ddinter_ids": "DDInter1263",
+      "occurrences_in_pairs": 420
+    },
+    {
+      "ddinter_drug_name": "Ephedrine",
+      "ddinter_ids": "DDInter650",
+      "occurrences_in_pairs": 419
+    },
+    {
+      "ddinter_drug_name": "Niraparib",
+      "ddinter_ids": "DDInter1297",
+      "occurrences_in_pairs": 419
+    },
+    {
+      "ddinter_drug_name": "Primaquine",
+      "ddinter_ids": "DDInter1520",
+      "occurrences_in_pairs": 419
+    },
+    {
+      "ddinter_drug_name": "Rosiglitazone",
+      "ddinter_ids": "DDInter1621",
+      "occurrences_in_pairs": 417
+    },
+    {
+      "ddinter_drug_name": "Fenfluramine",
+      "ddinter_ids": "DDInter717",
+      "occurrences_in_pairs": 406
+    },
+    {
+      "ddinter_drug_name": "Brimonidine (ophthalmic)",
+      "ddinter_ids": "DDInter235",
+      "occurrences_in_pairs": 399
+    },
+    {
+      "ddinter_drug_name": "Brimonidine (topical)",
+      "ddinter_ids": "DDInter236",
+      "occurrences_in_pairs": 399
+    },
+    {
+      "ddinter_drug_name": "Halofantrine",
+      "ddinter_ids": "DDInter852",
+      "occurrences_in_pairs": 398
+    },
+    {
+      "ddinter_drug_name": "Tetracosactide",
+      "ddinter_ids": "DDInter1782",
+      "occurrences_in_pairs": 398
+    },
+    {
+      "ddinter_drug_name": "Sitagliptin",
+      "ddinter_ids": "DDInter1679",
+      "occurrences_in_pairs": 395
+    },
+    {
+      "ddinter_drug_name": "Corticotropin",
+      "ddinter_ids": "DDInter445",
+      "occurrences_in_pairs": 393
+    },
+    {
+      "ddinter_drug_name": "Vinorelbine",
+      "ddinter_ids": "DDInter1939",
+      "occurrences_in_pairs": 392
+    },
+    {
+      "ddinter_drug_name": "Eliglustat",
+      "ddinter_ids": "DDInter629",
+      "occurrences_in_pairs": 391
+    },
+    {
+      "ddinter_drug_name": "Vincristine",
+      "ddinter_ids": "DDInter1937",
+      "occurrences_in_pairs": 381
+    },
+    {
+      "ddinter_drug_name": "Palonosetron",
+      "ddinter_ids": "DDInter1382",
+      "occurrences_in_pairs": 377
+    },
+    {
+      "ddinter_drug_name": "Nabilone",
+      "ddinter_ids": "DDInter1253",
+      "occurrences_in_pairs": 376
+    },
+    {
+      "ddinter_drug_name": "Chlorpheniramine",
+      "ddinter_ids": "DDInter362",
+      "occurrences_in_pairs": 371
+    },
+    {
+      "ddinter_drug_name": "Goserelin",
+      "ddinter_ids": "DDInter839",
+      "occurrences_in_pairs": 371
+    },
+    {
+      "ddinter_drug_name": "Triptorelin",
+      "ddinter_ids": "DDInter1880",
+      "occurrences_in_pairs": 371
+    },
+    {
+      "ddinter_drug_name": "Pramlintide",
+      "ddinter_ids": "DDInter1506",
+      "occurrences_in_pairs": 370
+    },
+    {
+      "ddinter_drug_name": "Anakinra",
+      "ddinter_ids": "DDInter94",
+      "occurrences_in_pairs": 369
+    },
+    {
+      "ddinter_drug_name": "Histrelin",
+      "ddinter_ids": "DDInter864",
+      "occurrences_in_pairs": 369
+    },
+    {
+      "ddinter_drug_name": "Leuprolide",
+      "ddinter_ids": "DDInter1042",
+      "occurrences_in_pairs": 369
+    },
+    {
+      "ddinter_drug_name": "Rilonacept",
+      "ddinter_ids": "DDInter1594",
+      "occurrences_in_pairs": 369
+    },
+    {
+      "ddinter_drug_name": "Alefacept",
+      "ddinter_ids": "DDInter40",
+      "occurrences_in_pairs": 368
+    },
+    {
+      "ddinter_drug_name": "Paclitaxel (protein-bound)",
+      "ddinter_ids": "DDInter1378",
+      "occurrences_in_pairs": 365
+    },
+    {
+      "ddinter_drug_name": "Albiglutide",
+      "ddinter_ids": "DDInter36",
+      "occurrences_in_pairs": 361
+    },
+    {
+      "ddinter_drug_name": "Irinotecan",
+      "ddinter_ids": "DDInter973",
+      "occurrences_in_pairs": 360
+    },
+    {
+      "ddinter_drug_name": "Vincristine (liposome)",
+      "ddinter_ids": "DDInter1938",
+      "occurrences_in_pairs": 358
+    },
+    {
+      "ddinter_drug_name": "Cyproheptadine",
+      "ddinter_ids": "DDInter459",
+      "occurrences_in_pairs": 354
+    },
+    {
+      "ddinter_drug_name": "Saquinavir",
+      "ddinter_ids": "DDInter1640",
+      "occurrences_in_pairs": 347
+    },
+    {
+      "ddinter_drug_name": "Morphine (liposomal)",
+      "ddinter_ids": "DDInter1245",
+      "occurrences_in_pairs": 344
+    },
+    {
+      "ddinter_drug_name": "Dexbrompheniramine",
+      "ddinter_ids": "DDInter517",
+      "occurrences_in_pairs": 342
+    },
+    {
+      "ddinter_drug_name": "Lumacaftor",
+      "ddinter_ids": "DDInter1101",
+      "occurrences_in_pairs": 340
+    },
+    {
+      "ddinter_drug_name": "Brompheniramine",
+      "ddinter_ids": "DDInter245",
+      "occurrences_in_pairs": 339
+    },
+    {
+      "ddinter_drug_name": "Fluphenazine",
+      "ddinter_ids": "DDInter760",
+      "occurrences_in_pairs": 338
+    },
+    {
+      "ddinter_drug_name": "Triprolidine",
+      "ddinter_ids": "DDInter1879",
+      "occurrences_in_pairs": 337
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+- [x] The repository contains idempotent Supabase/Postgres migrations for `rx_import_batches` and all required `raw_*` tables.
+- [x] The repository contains idempotent Supabase/Postgres migrations for all required curated `rx_*` tables and the `rx_product_enriched_v` view.
+- [x] The schema preserves raw import provenance with `import_batch_id`, source metadata, and row counts.
+- [x] The import workflow supports the exact datasets currently present in `Datasets/`.
+- [x] The implementation treats `A21030000I-E41001-001.csv` as the primary product dictionary and `all1_11505_*` only as history/QC validation input.
+- [x] The curated build resolves products to one or more normalized ingredient concepts through a many-to-many junction table.
+- [x] The implementation parses TFDA `主成分略述` with `;;` splitting and stores normalized ingredient concepts without discarding original source text.
+- [x] The implementation derives TFDA permit mappings from the NHI TFDA hyperlink field and stores regulatory enrichment in curated tables.
+- [x] Ingredient disagreements between NHI and TFDA create review-queue items instead of silent automatic overrides when confidence is low.
+- [x] The implementation derives `rx_atc_reference_latest` from the merged ATC/DDD snapshots and joins NHI ATC codes against it.
+- [x] The schema includes the indexes required by the guide for product names, normalized variants, ingredient links, TFDA permits, and ATC codes.
+- [x] The implementation includes a batch-oriented curated refresh strategy using staging/swap or an equivalent release boundary.
+- [x] The repository contains a QC report script that outputs coverage, join quality, all1 overlap, and mismatch examples.
+- [x] The repository contains `.env.example` with all required Supabase environment variables.
+- [x] The repository documentation explains local execution, Supabase deployment, and example SQL verification queries.

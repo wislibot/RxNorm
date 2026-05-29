@@ -1,0 +1,9 @@
+{
+  "by_severity": {
+    "major": 6678,
+    "minor": 1914,
+    "moderate": 22264
+  },
+  "pairs_inserted_mapped": 30856,
+  "pairs_total_in_file": 130422
+}

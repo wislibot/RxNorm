@@ -1,0 +1,114 @@
+# DDI Mapping Summary
+
+## Overview
+
+| Metric | Value |
+| --- | --- |
+| `ddinter_unique_names` | 1902 |
+| `mapped_names` | 717 |
+| `mapped_pct` | 37.70% |
+
+## Top Unmapped Names
+
+| DDInter Drug Name | Occurrences In Pairs | DDInter IDs |
+| --- | ---: | --- |
+| Idelalisib | 881 | DDInter905 |
+| Triamcinolone (ophthalmic) | 867 | DDInter1857 |
+| Rucaparib | 741 | DDInter1626 |
+| Sibutramine | 688 | DDInter1665 |
+| Fostamatinib | 681 | DDInter785 |
+| Chloroquine | 667 | DDInter359 |
+| Panobinostat | 666 | DDInter1387 |
+| Hydrocodone | 657 | DDInter884 |
+| Dicoumarol | 640 | DDInter542 |
+| Picosulfuric acid | 624 | DDInter1464 |
+| Troglitazone | 624 | DDInter1881 |
+| Somatotropin | 623 | DDInter1699 |
+| Bexarotene | 610 | DDInter202 |
+| Osilodrostat | 596 | DDInter1351 |
+| Omacetaxine mepesuccinate | 590 | DDInter1335 |
+| Somatrem | 587 | DDInter1700 |
+| Epirubicin | 578 | DDInter655 |
+| Magnesium citrate | 573 | DDInter1115 |
+| Deflazacort | 568 | DDInter492 |
+| Encorafenib | 558 | DDInter640 |
+| Ivacaftor | 558 | DDInter997 |
+| Tripelennamine | 553 | DDInter1878 |
+| Orciprenaline | 548 | DDInter1346 |
+| Asparaginase Escherichia coli | 542 | DDInter127 |
+| Formoterol | 540 | DDInter776 |
+| Insulin human (inhalation, rapid acting) | 539 | DDInter935 |
+| Isoprenaline | 537 | DDInter987 |
+| Doxorubicin | 530 | DDInter596 |
+| Trabectedin | 528 | DDInter1840 |
+| Bupropion | 524 | DDInter252 |
+| Pegaspargase | 523 | DDInter1404 |
+| Methdilazine | 520 | DDInter1168 |
+| Sunitinib | 514 | DDInter1731 |
+| Macimorelin | 502 | DDInter1110 |
+| Glasdegib | 500 | DDInter822 |
+| Roflumilast | 498 | DDInter1614 |
+| Ivosidenib | 497 | DDInter1000 |
+| Insulin aspart (aspart) | 496 | DDInter929 |
+| Polyethylene glycol (3350 with electrolytes) | 496 | DDInter1487 |
+| Insulin glulisine | 495 | DDInter933 |
+| Insulin human (isophane) | 495 | DDInter936 |
+| Insulin human (zinc) | 495 | DDInter939 |
+| Insulin human (regular) | 494 | DDInter937 |
+| Insulin human (zinc extended) | 494 | DDInter938 |
+| Anagrelide | 493 | DDInter93 |
+| Doxorubicin (liposomal) | 483 | DDInter597 |
+| Elagolix | 463 | DDInter625 |
+| Romidepsin | 463 | DDInter1616 |
+| Pirbuterol | 457 | DDInter1476 |
+| Daunorubicin (liposomal) | 453 | DDInter486 |
+| Daunorubicin | 452 | DDInter485 |
+| Eribulin | 452 | DDInter666 |
+| Idarubicin | 450 | DDInter904 |
+| Dolasetron | 442 | DDInter581 |
+| Toremifene | 442 | DDInter1837 |
+| Tioguanine | 437 | DDInter1814 |
+| Iohexol | 432 | DDInter960 |
+| Iopamidol | 432 | DDInter961 |
+| Upadacitinib | 430 | DDInter1901 |
+| Insulin aspart (aspart protamine) | 429 | DDInter928 |
+| Insulin lispro (protamine) | 429 | DDInter941 |
+| Dronabinol | 423 | DDInter601 |
+| Naltrexone | 420 | DDInter1263 |
+| Ephedrine | 419 | DDInter650 |
+| Niraparib | 419 | DDInter1297 |
+| Primaquine | 419 | DDInter1520 |
+| Rosiglitazone | 417 | DDInter1621 |
+| Fenfluramine | 406 | DDInter717 |
+| Brimonidine (ophthalmic) | 399 | DDInter235 |
+| Brimonidine (topical) | 399 | DDInter236 |
+| Halofantrine | 398 | DDInter852 |
+| Tetracosactide | 398 | DDInter1782 |
+| Sitagliptin | 395 | DDInter1679 |
+| Corticotropin | 393 | DDInter445 |
+| Vinorelbine | 392 | DDInter1939 |
+| Eliglustat | 391 | DDInter629 |
+| Vincristine | 381 | DDInter1937 |
+| Palonosetron | 377 | DDInter1382 |
+| Nabilone | 376 | DDInter1253 |
+| Chlorpheniramine | 371 | DDInter362 |
+| Goserelin | 371 | DDInter839 |
+| Triptorelin | 371 | DDInter1880 |
+| Pramlintide | 370 | DDInter1506 |
+| Anakinra | 369 | DDInter94 |
+| Histrelin | 369 | DDInter864 |
+| Leuprolide | 369 | DDInter1042 |
+| Rilonacept | 369 | DDInter1594 |
+| Alefacept | 368 | DDInter40 |
+| Paclitaxel (protein-bound) | 365 | DDInter1378 |
+| Albiglutide | 361 | DDInter36 |
+| Irinotecan | 360 | DDInter973 |
+| Vincristine (liposome) | 358 | DDInter1938 |
+| Cyproheptadine | 354 | DDInter459 |
+| Saquinavir | 347 | DDInter1640 |
+| Morphine (liposomal) | 344 | DDInter1245 |
+| Dexbrompheniramine | 342 | DDInter517 |
+| Lumacaftor | 340 | DDInter1101 |
+| Brompheniramine | 339 | DDInter245 |
+| Fluphenazine | 338 | DDInter760 |
+| Triprolidine | 337 | DDInter1879 |

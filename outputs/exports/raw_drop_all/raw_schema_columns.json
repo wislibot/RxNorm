@@ -1,0 +1,786 @@
+[
+  {
+    "table_name": "raw_all1_code_set",
+    "column_name": "nhi_code",
+    "ordinal_position": 1,
+    "data_type": "text",
+    "is_nullable": "NO"
+  },
+  {
+    "table_name": "raw_atc_ddd",
+    "column_name": "raw_atc_ddd_id",
+    "ordinal_position": 1,
+    "data_type": "bigint",
+    "is_nullable": "NO"
+  },
+  {
+    "table_name": "raw_atc_ddd",
+    "column_name": "import_batch_id",
+    "ordinal_position": 2,
+    "data_type": "uuid",
+    "is_nullable": "NO"
+  },
+  {
+    "table_name": "raw_atc_ddd",
+    "column_name": "row_number",
+    "ordinal_position": 3,
+    "data_type": "integer",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_atc_ddd",
+    "column_name": "snapshot_date",
+    "ordinal_position": 4,
+    "data_type": "date",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_atc_ddd",
+    "column_name": "record_type",
+    "ordinal_position": 5,
+    "data_type": "text",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_atc_ddd",
+    "column_name": "atc_code",
+    "ordinal_position": 6,
+    "data_type": "text",
+    "is_nullable": "NO"
+  },
+  {
+    "table_name": "raw_atc_ddd",
+    "column_name": "atc_name",
+    "ordinal_position": 7,
+    "data_type": "text",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_atc_ddd",
+    "column_name": "ddd",
+    "ordinal_position": 8,
+    "data_type": "numeric",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_atc_ddd",
+    "column_name": "uom",
+    "ordinal_position": 9,
+    "data_type": "text",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_atc_ddd",
+    "column_name": "adm_r",
+    "ordinal_position": 10,
+    "data_type": "text",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_atc_ddd",
+    "column_name": "note",
+    "ordinal_position": 11,
+    "data_type": "text",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_atc_ddd",
+    "column_name": "brand_name",
+    "ordinal_position": 12,
+    "data_type": "text",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_atc_ddd",
+    "column_name": "dosage_form",
+    "ordinal_position": 13,
+    "data_type": "text",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_atc_ddd",
+    "column_name": "ingredients",
+    "ordinal_position": 14,
+    "data_type": "text",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_atc_ddd",
+    "column_name": "ddd_comb",
+    "ordinal_position": 15,
+    "data_type": "text",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_atc_ddd",
+    "column_name": "source_payload",
+    "ordinal_position": 16,
+    "data_type": "jsonb",
+    "is_nullable": "NO"
+  },
+  {
+    "table_name": "raw_nhi_component_map",
+    "column_name": "raw_nhi_component_map_id",
+    "ordinal_position": 1,
+    "data_type": "bigint",
+    "is_nullable": "NO"
+  },
+  {
+    "table_name": "raw_nhi_component_map",
+    "column_name": "import_batch_id",
+    "ordinal_position": 2,
+    "data_type": "uuid",
+    "is_nullable": "NO"
+  },
+  {
+    "table_name": "raw_nhi_component_map",
+    "column_name": "row_number",
+    "ordinal_position": 3,
+    "data_type": "integer",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_nhi_component_map",
+    "column_name": "component_code",
+    "ordinal_position": 4,
+    "data_type": "text",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_nhi_component_map",
+    "column_name": "reimbursed_component_code",
+    "ordinal_position": 5,
+    "data_type": "text",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_nhi_component_map",
+    "column_name": "reimbursed_component_name",
+    "ordinal_position": 6,
+    "data_type": "text",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_nhi_component_map",
+    "column_name": "source_payload",
+    "ordinal_position": 7,
+    "data_type": "jsonb",
+    "is_nullable": "NO"
+  },
+  {
+    "table_name": "raw_nhi_items",
+    "column_name": "raw_nhi_item_id",
+    "ordinal_position": 1,
+    "data_type": "bigint",
+    "is_nullable": "NO"
+  },
+  {
+    "table_name": "raw_nhi_items",
+    "column_name": "import_batch_id",
+    "ordinal_position": 2,
+    "data_type": "uuid",
+    "is_nullable": "NO"
+  },
+  {
+    "table_name": "raw_nhi_items",
+    "column_name": "row_number",
+    "ordinal_position": 3,
+    "data_type": "integer",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_nhi_items",
+    "column_name": "change_flag",
+    "ordinal_position": 4,
+    "data_type": "text",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_nhi_items",
+    "column_name": "nhi_code",
+    "ordinal_position": 5,
+    "data_type": "text",
+    "is_nullable": "NO"
+  },
+  {
+    "table_name": "raw_nhi_items",
+    "column_name": "name_en",
+    "ordinal_position": 6,
+    "data_type": "text",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_nhi_items",
+    "column_name": "name_zh",
+    "ordinal_position": 7,
+    "data_type": "text",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_nhi_items",
+    "column_name": "ingredient_text",
+    "ordinal_position": 8,
+    "data_type": "text",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_nhi_items",
+    "column_name": "strength_value",
+    "ordinal_position": 9,
+    "data_type": "numeric",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_nhi_items",
+    "column_name": "strength_unit",
+    "ordinal_position": 10,
+    "data_type": "text",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_nhi_items",
+    "column_name": "combo_flag",
+    "ordinal_position": 11,
+    "data_type": "text",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_nhi_items",
+    "column_name": "price_nhi",
+    "ordinal_position": 12,
+    "data_type": "numeric",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_nhi_items",
+    "column_name": "effective_start",
+    "ordinal_position": 13,
+    "data_type": "date",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_nhi_items",
+    "column_name": "effective_end",
+    "ordinal_position": 14,
+    "data_type": "date",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_nhi_items",
+    "column_name": "vendor_name",
+    "ordinal_position": 15,
+    "data_type": "text",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_nhi_items",
+    "column_name": "manufacturer_name",
+    "ordinal_position": 16,
+    "data_type": "text",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_nhi_items",
+    "column_name": "dose_form",
+    "ordinal_position": 17,
+    "data_type": "text",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_nhi_items",
+    "column_name": "drug_category",
+    "ordinal_position": 18,
+    "data_type": "text",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_nhi_items",
+    "column_name": "category_group_name",
+    "ordinal_position": 19,
+    "data_type": "text",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_nhi_items",
+    "column_name": "atc_code",
+    "ordinal_position": 20,
+    "data_type": "text",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_nhi_items",
+    "column_name": "reimbursement_section",
+    "ordinal_position": 21,
+    "data_type": "text",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_nhi_items",
+    "column_name": "tfda_link",
+    "ordinal_position": 22,
+    "data_type": "text",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_nhi_items",
+    "column_name": "reimbursement_section_link",
+    "ordinal_position": 23,
+    "data_type": "text",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_nhi_items",
+    "column_name": "source_payload",
+    "ordinal_position": 24,
+    "data_type": "jsonb",
+    "is_nullable": "NO"
+  },
+  {
+    "table_name": "raw_tfda_permits_active",
+    "column_name": "raw_tfda_permit_active_id",
+    "ordinal_position": 1,
+    "data_type": "bigint",
+    "is_nullable": "NO"
+  },
+  {
+    "table_name": "raw_tfda_permits_active",
+    "column_name": "import_batch_id",
+    "ordinal_position": 2,
+    "data_type": "uuid",
+    "is_nullable": "NO"
+  },
+  {
+    "table_name": "raw_tfda_permits_active",
+    "column_name": "row_number",
+    "ordinal_position": 3,
+    "data_type": "integer",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_tfda_permits_active",
+    "column_name": "tfda_permit_no",
+    "ordinal_position": 4,
+    "data_type": "text",
+    "is_nullable": "NO"
+  },
+  {
+    "table_name": "raw_tfda_permits_active",
+    "column_name": "cancel_status",
+    "ordinal_position": 5,
+    "data_type": "text",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_tfda_permits_active",
+    "column_name": "cancel_date",
+    "ordinal_position": 6,
+    "data_type": "date",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_tfda_permits_active",
+    "column_name": "cancel_reason",
+    "ordinal_position": 7,
+    "data_type": "text",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_tfda_permits_active",
+    "column_name": "expiry_date",
+    "ordinal_position": 8,
+    "data_type": "date",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_tfda_permits_active",
+    "column_name": "issue_date",
+    "ordinal_position": 9,
+    "data_type": "date",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_tfda_permits_active",
+    "column_name": "permit_type",
+    "ordinal_position": 10,
+    "data_type": "text",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_tfda_permits_active",
+    "column_name": "old_permit_no",
+    "ordinal_position": 11,
+    "data_type": "text",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_tfda_permits_active",
+    "column_name": "customs_doc_no",
+    "ordinal_position": 12,
+    "data_type": "text",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_tfda_permits_active",
+    "column_name": "product_name_zh",
+    "ordinal_position": 13,
+    "data_type": "text",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_tfda_permits_active",
+    "column_name": "product_name_en",
+    "ordinal_position": 14,
+    "data_type": "text",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_tfda_permits_active",
+    "column_name": "indications",
+    "ordinal_position": 15,
+    "data_type": "text",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_tfda_permits_active",
+    "column_name": "dosage_form",
+    "ordinal_position": 16,
+    "data_type": "text",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_tfda_permits_active",
+    "column_name": "packaging",
+    "ordinal_position": 17,
+    "data_type": "text",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_tfda_permits_active",
+    "column_name": "drug_class",
+    "ordinal_position": 18,
+    "data_type": "text",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_tfda_permits_active",
+    "column_name": "controlled_substance_level",
+    "ordinal_position": 19,
+    "data_type": "text",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_tfda_permits_active",
+    "column_name": "ingredient_text_tfda",
+    "ordinal_position": 20,
+    "data_type": "text",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_tfda_permits_active",
+    "column_name": "applicant_name",
+    "ordinal_position": 21,
+    "data_type": "text",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_tfda_permits_active",
+    "column_name": "applicant_address",
+    "ordinal_position": 22,
+    "data_type": "text",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_tfda_permits_active",
+    "column_name": "applicant_tax_id",
+    "ordinal_position": 23,
+    "data_type": "text",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_tfda_permits_active",
+    "column_name": "manufacturer_name",
+    "ordinal_position": 24,
+    "data_type": "text",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_tfda_permits_active",
+    "column_name": "manufacturer_site_address",
+    "ordinal_position": 25,
+    "data_type": "text",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_tfda_permits_active",
+    "column_name": "manufacturer_company_address",
+    "ordinal_position": 26,
+    "data_type": "text",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_tfda_permits_active",
+    "column_name": "manufacturer_country",
+    "ordinal_position": 27,
+    "data_type": "text",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_tfda_permits_active",
+    "column_name": "manufacturing_process",
+    "ordinal_position": 28,
+    "data_type": "text",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_tfda_permits_active",
+    "column_name": "change_date",
+    "ordinal_position": 29,
+    "data_type": "date",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_tfda_permits_active",
+    "column_name": "usage_dosage",
+    "ordinal_position": 30,
+    "data_type": "text",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_tfda_permits_active",
+    "column_name": "packaging_barcode",
+    "ordinal_position": 31,
+    "data_type": "text",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_tfda_permits_active",
+    "column_name": "source_payload",
+    "ordinal_position": 32,
+    "data_type": "jsonb",
+    "is_nullable": "NO"
+  },
+  {
+    "table_name": "raw_tfda_permits_all",
+    "column_name": "raw_tfda_permit_all_id",
+    "ordinal_position": 1,
+    "data_type": "bigint",
+    "is_nullable": "NO"
+  },
+  {
+    "table_name": "raw_tfda_permits_all",
+    "column_name": "import_batch_id",
+    "ordinal_position": 2,
+    "data_type": "uuid",
+    "is_nullable": "NO"
+  },
+  {
+    "table_name": "raw_tfda_permits_all",
+    "column_name": "row_number",
+    "ordinal_position": 3,
+    "data_type": "integer",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_tfda_permits_all",
+    "column_name": "tfda_permit_no",
+    "ordinal_position": 4,
+    "data_type": "text",
+    "is_nullable": "NO"
+  },
+  {
+    "table_name": "raw_tfda_permits_all",
+    "column_name": "cancel_status",
+    "ordinal_position": 5,
+    "data_type": "text",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_tfda_permits_all",
+    "column_name": "cancel_date",
+    "ordinal_position": 6,
+    "data_type": "date",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_tfda_permits_all",
+    "column_name": "cancel_reason",
+    "ordinal_position": 7,
+    "data_type": "text",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_tfda_permits_all",
+    "column_name": "expiry_date",
+    "ordinal_position": 8,
+    "data_type": "date",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_tfda_permits_all",
+    "column_name": "issue_date",
+    "ordinal_position": 9,
+    "data_type": "date",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_tfda_permits_all",
+    "column_name": "permit_type",
+    "ordinal_position": 10,
+    "data_type": "text",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_tfda_permits_all",
+    "column_name": "old_permit_no",
+    "ordinal_position": 11,
+    "data_type": "text",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_tfda_permits_all",
+    "column_name": "customs_doc_no",
+    "ordinal_position": 12,
+    "data_type": "text",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_tfda_permits_all",
+    "column_name": "product_name_zh",
+    "ordinal_position": 13,
+    "data_type": "text",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_tfda_permits_all",
+    "column_name": "product_name_en",
+    "ordinal_position": 14,
+    "data_type": "text",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_tfda_permits_all",
+    "column_name": "indications",
+    "ordinal_position": 15,
+    "data_type": "text",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_tfda_permits_all",
+    "column_name": "dosage_form",
+    "ordinal_position": 16,
+    "data_type": "text",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_tfda_permits_all",
+    "column_name": "packaging",
+    "ordinal_position": 17,
+    "data_type": "text",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_tfda_permits_all",
+    "column_name": "drug_class",
+    "ordinal_position": 18,
+    "data_type": "text",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_tfda_permits_all",
+    "column_name": "controlled_substance_level",
+    "ordinal_position": 19,
+    "data_type": "text",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_tfda_permits_all",
+    "column_name": "ingredient_text_tfda",
+    "ordinal_position": 20,
+    "data_type": "text",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_tfda_permits_all",
+    "column_name": "applicant_name",
+    "ordinal_position": 21,
+    "data_type": "text",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_tfda_permits_all",
+    "column_name": "applicant_address",
+    "ordinal_position": 22,
+    "data_type": "text",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_tfda_permits_all",
+    "column_name": "applicant_tax_id",
+    "ordinal_position": 23,
+    "data_type": "text",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_tfda_permits_all",
+    "column_name": "manufacturer_name",
+    "ordinal_position": 24,
+    "data_type": "text",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_tfda_permits_all",
+    "column_name": "manufacturer_site_address",
+    "ordinal_position": 25,
+    "data_type": "text",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_tfda_permits_all",
+    "column_name": "manufacturer_company_address",
+    "ordinal_position": 26,
+    "data_type": "text",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_tfda_permits_all",
+    "column_name": "manufacturer_country",
+    "ordinal_position": 27,
+    "data_type": "text",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_tfda_permits_all",
+    "column_name": "manufacturing_process",
+    "ordinal_position": 28,
+    "data_type": "text",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_tfda_permits_all",
+    "column_name": "change_date",
+    "ordinal_position": 29,
+    "data_type": "date",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_tfda_permits_all",
+    "column_name": "usage_dosage",
+    "ordinal_position": 30,
+    "data_type": "text",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_tfda_permits_all",
+    "column_name": "packaging_barcode",
+    "ordinal_position": 31,
+    "data_type": "text",
+    "is_nullable": "YES"
+  },
+  {
+    "table_name": "raw_tfda_permits_all",
+    "column_name": "source_payload",
+    "ordinal_position": 32,
+    "data_type": "jsonb",
+    "is_nullable": "NO"
+  }
+]
