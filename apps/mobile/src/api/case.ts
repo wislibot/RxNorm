@@ -50,7 +50,7 @@ type RxMedicationLineMatchRow = {
   match_status: 'matched' | 'unmatched';
   ingredient_id: string | null;
   ingredient_canonical_name: string | null;
-  match_method: 'canonical_exact' | 'alias_exact' | 'paren_alias_exact' | null;
+  match_method: 'canonical_exact' | 'alias_exact' | 'paren_alias_exact' | 'ingredient_token' | null;
   confidence: number | null;
 };
 
@@ -202,9 +202,11 @@ function mapMedicationMatchesToDetectedItems(
       ingredientIds.add(match.ingredient_id);
     }
 
+    const canonical = match?.ingredient_canonical_name ?? null;
+
     return {
       confidence: match?.confidence ?? null,
-      display_name: match?.input_text ?? line,
+      display_name: isMatched && canonical ? canonical : (match?.input_text ?? line),
       ingredient_id: isMatched ? match?.ingredient_id : null,
       match_method: match?.match_method ?? null,
       match_status: isMatched ? 'matched' : 'unmatched',

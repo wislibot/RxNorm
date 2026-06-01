@@ -166,7 +166,7 @@ describe('createCase', () => {
       detected_items: [
         {
           confidence: 0.9,
-          display_name: 'Spiriva Respimat 2 puff (tiotropium)',
+          display_name: 'TIOTROPIUM',
           ingredient_id: 'ingredient-tiotropium',
           match_method: 'paren_alias_exact',
           match_status: 'matched',
@@ -177,7 +177,7 @@ describe('createCase', () => {
         },
         {
           confidence: 0.95,
-          display_name: 'Tiotropium',
+          display_name: 'TIOTROPIUM',
           ingredient_id: 'ingredient-tiotropium',
           match_method: 'canonical_exact',
           match_status: 'matched',
