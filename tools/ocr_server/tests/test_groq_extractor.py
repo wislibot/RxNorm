@@ -260,3 +260,41 @@ class TestExtractFieldsWithGroq:
         assert result is not None
         assert result["patientName"] == "王小花"
         assert result["patientSex"] == "F"
+
+    @pytest.mark.asyncio
+    async def test_quantity_is_pack_count_not_strength(self):
+        """Fix 2: quantity must be a pack count (1盒), not a strength (60puff/bot)."""
+        response_data = {
+            "patientName": None,
+            "patientSex": None,
+            "prescriptionNo": None,
+            "medicationName": "Spiriva Respimat 2.5mcg/puff, 60puff/bot(tiotropium)",
+            "quantity": "1盒",
+            "directions": None,
+            "indications": None,
+            "warnings": None,
+            "sideEffects": None,
+            "appearance": None,
+            "pharmacyName": None,
+            "pharmacyAddress": None,
+            "pharmacistName": None,
+            "physicianName": None,
+            "dispensingDate": None,
+            "useBefore": None,
+            "other": [],
+        }
+        choice = MagicMock()
+        choice.message.content = json.dumps(response_data)
+        completion = MagicMock()
+        completion.choices = [choice]
+
+        with patch("app.groq_extractor.AsyncGroq") as mock_client_class:
+            mock_client = MagicMock()
+            mock_client.chat.completions.create = AsyncMock(return_value=completion)
+            mock_client_class.return_value = mock_client
+
+            result = await extract_fields_with_groq(VALID_OCR_TEXT)
+
+        assert result is not None
+        assert result["quantity"] == "1盒"
+        assert "60puff/bot" not in (result["quantity"] or "")

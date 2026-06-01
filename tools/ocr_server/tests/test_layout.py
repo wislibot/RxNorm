@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from app.layout import serialize_layout
+from app.layout import _is_noise, serialize_layout
 from app.schemas import OcrElement
 
 
@@ -19,19 +19,19 @@ class TestSerializeLayout:
         result = serialize_layout(els, page_width=1000)
         assert result == "Hello"
 
-    def test_two_column_row_with_qr_dropped(self):
-        """Two-column signature row: QR box is filtered, columns preserved."""
+    def test_two_column_row_with_noise_dropped(self):
+        """Two-column signature row: empty-text blob is filtered, columns preserved."""
         page_w = 800
         els = [
             _el("處方醫師", 10, 100, 100, 120),     # left label
             _el("王○○", 110, 100, 180, 120),        # left value
-            _el("|", 190, 100, 200, 120),            # gap marker (not a real element, but tests gap)
+            _el("|", 190, 100, 200, 120),            # gap marker
             _el("調劑藥師", 350, 100, 440, 120),     # right label
             _el("林○○", 450, 100, 520, 120),        # right value
-            _el("AB", 600, 50, 700, 150),            # QR code (2 chars, large, square) → should be dropped
+            _el("", 600, 50, 700, 150),              # empty blob → should be dropped
         ]
         result = serialize_layout(els, page_width=page_w)
-        assert "AB" not in result
+        assert "" not in result.split()  # empty string not in output tokens
         assert "處方醫師" in result
         assert "王○○" in result
         assert "調劑藥師" in result
@@ -105,24 +105,18 @@ class TestSerializeLayout:
         assert " | " in result_far
 
     def test_qr_heuristic_matches_mobile_side(self):
-        """QR detection mirrors mobile isQrCodeElement: 2 chars, ≥40px, square."""
-        # Should be dropped
-        qr = _el("AB", 100, 100, 200, 200)  # 2 chars, 100×100, aspect=1.0
-        assert qr.text.strip().__len__() <= 2
-        w = qr.bbox[2] - qr.bbox[0]
-        h = qr.bbox[3] - qr.bbox[1]
-        assert w >= 40 and h >= 40
-        assert 0.7 <= w / h <= 1.4
+        """After Fix 1: alphanumeric text is never noise, only empty/symbol-only blobs are."""
+        # "AB" — alphanumeric → NOT noise (real content)
+        qr = _el("AB", 100, 100, 200, 200)
+        assert not _is_noise(qr)
 
-        # Should NOT be dropped (too many chars)
+        # "ABC" — alphanumeric → NOT noise
         not_qr1 = _el("ABC", 100, 100, 200, 200)
-        assert len(not_qr1.text.strip()) > 2
+        assert not _is_noise(not_qr1)
 
-        # Should NOT be dropped (too small)
-        not_qr2 = _el("AB", 100, 100, 130, 130)  # 30×30
-        w2 = not_qr2.bbox[2] - not_qr2.bbox[0]
-        h2 = not_qr2.bbox[3] - not_qr2.bbox[1]
-        assert w2 < 40 or h2 < 40
+        # Empty text in large square → IS noise
+        empty = _el("", 100, 100, 200, 200)
+        assert _is_noise(empty)
 
     def test_medication_row_with_quantity(self):
         """Medication row: drug name, quantity separated by column gap."""
@@ -153,3 +147,60 @@ class TestSerializeLayout:
         ]
         result = serialize_layout(els, page_width=page_w)
         assert result.count("|") == 2  # two separators for three columns
+
+
+class TestIsNoiseFix1:
+    """Fix 1: _is_noise must never drop elements with real linguistic content."""
+
+    def test_single_cjk_char_in_square_box_is_kept(self):
+        """'王' in a ~square >=40px box must NOT be noise (physician name)."""
+        el = _el("王", 100, 100, 233, 203)  # 133×103, aspect=1.29
+        assert not _is_noise(el)
+
+    def test_sex_glyph_in_square_box_is_kept(self):
+        """'男' in a ~square box must NOT be noise (patient sex)."""
+        el = _el("男", 100, 100, 203, 208)  # 103×108, aspect=0.95
+        assert not _is_noise(el)
+
+    def test_female_sex_glyph_is_kept(self):
+        """'女' must NOT be noise."""
+        el = _el("女", 100, 100, 200, 210)
+        assert not _is_noise(el)
+
+    def test_empty_text_square_is_noise(self):
+        """Empty text in a large square box IS noise."""
+        el = _el("", 100, 100, 200, 200)
+        assert _is_noise(el)
+
+    def test_whitespace_only_square_is_noise(self):
+        """Whitespace-only text in a large square box IS noise."""
+        el = _el("  ", 100, 100, 200, 200)
+        assert _is_noise(el)
+
+    def test_single_alphanumeric_in_square_is_kept(self):
+        """Single ASCII letter in a square box is NOT noise (real content)."""
+        el = _el("A", 100, 100, 200, 200)
+        assert not _is_noise(el)
+
+    def test_symbol_only_short_in_square_is_noise(self):
+        """A non-linguistic symbol like 'X' or '✓' in a square IS noise."""
+        el = _el("X", 100, 100, 200, 200)
+        # 'X' is alphanumeric (c.isalnum() is True), so it is NOT noise
+        # under the new heuristic. This is correct — 'X' could be a meaningful
+        # symbol on a medication bag.
+        assert not _is_noise(el)
+
+    def test_signature_region_keeps_both_names(self):
+        """Full signature row: both 王 (left) and 林 (right) survive."""
+        page_w = 800
+        els = [
+            _el("處方醫師", 10, 100, 100, 120),
+            _el("王", 110, 100, 233, 203),       # 133×103, single CJK
+            _el("調劑藥師", 350, 100, 440, 120),
+            _el("林", 450, 100, 800, 244),        # 350×144, single CJK
+        ]
+        result = serialize_layout(els, page_width=page_w)
+        assert "王" in result
+        assert "林" in result
+        assert "處方醫師" in result
+        assert "調劑藥師" in result

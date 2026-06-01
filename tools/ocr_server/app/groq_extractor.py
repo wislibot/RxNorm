@@ -74,6 +74,16 @@ is only the text in the same row/column as its label, up to \
 the next label or the next free-floating row. \
 警語與注意事項 captures only its adjacent value, not the \
 disclaimer below it.
+14. QUANTITY IS A PACK COUNT. quantity is the value of 總量 / \
+Quantity and is a DISPENSED PACK COUNT — a small number with \
+a pack/dose-form unit such as 盒, 瓶, 罐, 支, 粒, 顆, 包, 條. \
+It is NEVER a strength or dosage-form descriptor such as \
+"60puff/bot", "mg", "mcg/puff", or "tablet". If a candidate \
+quantity value looks like a strength or device descriptor, \
+leave quantity null rather than guessing. The pack-count \
+token (e.g. 1盒) may appear merged into the medication name \
+text; extract it into quantity and do not leave it inside \
+medicationName.
 
 Field labels to recognize (standard AND variants):
 

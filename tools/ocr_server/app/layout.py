@@ -7,23 +7,29 @@ from .schemas import OcrElement
 
 
 def _is_noise(el: OcrElement) -> bool:
-    """Drop QR codes and icon labels (mirrors mobile isQrCodeElement heuristic)."""
+    """Drop only contentless square blobs (e.g. QR/icon).
+
+    A recognized CJK or alphanumeric glyph is real content and is never noise.
+    """
     text = el.text.strip()
+    if not text:
+        return True
+
+    # Real linguistic content — never noise (fixes single-char names / sex glyph)
+    if any(("\u4e00" <= c <= "\u9fff") or c.isalnum() for c in text):
+        return False
+
+    # Only symbol-only / non-linguistic short blobs reach the QR shape test
     if len(text) > 2:
         return False
 
     x1, y1, x2, y2 = el.bbox
-    w = x2 - x1
-    h = y2 - y1
-
+    w, h = x2 - x1, y2 - y1
     if w < 40 or h < 40:
         return False
 
     aspect = w / h
-    if aspect < 0.7 or aspect > 1.4:
-        return False
-
-    return True
+    return 0.7 <= aspect <= 1.4
 
 
 def serialize_layout(elements: List[OcrElement], page_width: int) -> str:
