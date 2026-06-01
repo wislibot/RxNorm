@@ -101,7 +101,7 @@ RxNorm/
 Image → POST /parse → PaddleOCR → elements[]
   → Groq LLM (qwen3-32b) → case_fields JSON (16 fields)
   → Mobile app: mapRemoteCaseFields() → CaseFields
-  → rx_match_medication_lines RPC → ingredient matching
+  → rx_match_medication_lines RPC → ingredient matching (4 passes: canonical → alias → paren → token)
   → rx_match_brand_lines RPC → brand matching (non-critical, try/catch)
   → rx_cases table insert
 ```
@@ -214,6 +214,7 @@ Migrations run sequentially by timestamp:
 8. `202605250001` — rx_match_brand_lines RPC
 9. `202605250002` — extend rx_match_brand_lines bilingual
 10. `202605250003` — improve brand matching OCR spacing
+11. `202605260001` — ingredient token match pass
 
 ## ECC Skills (ECC-Universal Integration)
 

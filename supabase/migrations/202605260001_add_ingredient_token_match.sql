@@ -19,8 +19,11 @@ as $$
             source.input_text,
             public.rx_normalize_text(source.input_text) as normalized_text,
             case
-                when coalesce(source.input_text, '') ~ '\([^()]*[A-Za-z][^()]*\)'
-                    then public.rx_normalize_text(substring(source.input_text from '\(([^()]*)\)'))
+                when position('(' in coalesce(source.input_text, '')) > 0
+                 and position(')' in coalesce(source.input_text, '')) > position('(' in coalesce(source.input_text, ''))
+                    then public.rx_normalize_text(
+                        substring(source.input_text from position('(' in source.input_text) + 1 for
+                            position(')' in source.input_text) - position('(' in source.input_text) - 1))
                 else null
             end as paren_normalized_text
         from unnest(coalesce(medication_lines, '{}'::text[])) with ordinality as source(input_text, ordinality)
@@ -76,6 +79,7 @@ as $$
         join public.rx_ingredient_concepts as concepts
             on concepts.ingredient_id::text = variants.target_id
         where input_lines.paren_normalized_text is not null
+          and length(input_lines.paren_normalized_text) >= 3
 
         union all
 
@@ -87,6 +91,7 @@ as $$
         join public.rx_ingredient_concepts as concepts
             on concepts.canonical_name_normalized = input_lines.paren_normalized_text
         where input_lines.paren_normalized_text is not null
+          and length(input_lines.paren_normalized_text) >= 3
     ),
     paren_unique as (
         select
@@ -105,8 +110,13 @@ as $$
         from input_lines il
         join public.rx_ingredient_concepts c
           on char_length(c.canonical_name_normalized) >= 4
-         and il.normalized_text ~ ('\m' || c.canonical_name_normalized || '\M')
         where coalesce(il.normalized_text, '') <> ''
+          and (
+              il.normalized_text ~ ('[[:<:]]' || c.canonical_name_normalized || '[[:>:]]')
+              or il.normalized_text ~ ('[[:<:]]' || regexp_replace(c.canonical_name_normalized, ' *=.*| +[0-9.]+ *MG *$', '', 'g') || '[[:>:]]')
+              or il.normalized_text ~ ('[[:<:]]' || regexp_replace(c.canonical_name_normalized, '(S|ES)$', '', 'g') || '(S|ES)[[:>:]]')
+              or il.normalized_text ~ ('[[:<:]]' || regexp_replace(regexp_replace(c.canonical_name_normalized, ' *=.*| +[0-9.]+ *MG *$', '', 'g'), '(S|ES)$', '', 'g') || '(S|ES)[[:>:]]')
+          )
     ),
     token_unique as (
         select

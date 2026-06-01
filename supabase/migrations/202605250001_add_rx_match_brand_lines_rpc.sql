@@ -29,6 +29,11 @@ as $$
         );
 $$;
 
+-- Drop first: create or replace cannot change return type, and later migrations
+-- (202605250002, 202605250003) extend this to 11 columns. Without the drop,
+-- supabase db push fails with "cannot change return type of existing function".
+drop function if exists public.rx_match_brand_lines(text[]);
+
 create or replace function public.rx_match_brand_lines(brand_lines text[])
 returns table (
     input_index int,
