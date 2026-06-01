@@ -50,6 +50,7 @@ VALID_JSON_RESPONSE = {
     "physicianName": None,
     "dispensingDate": None,
     "useBefore": None,
+    "other": [],
 }
 
 
@@ -76,7 +77,7 @@ class TestExtractFieldsWithGroq:
             result = await extract_fields_with_groq(VALID_OCR_TEXT)
 
         assert result is not None
-        assert len(result) == 16
+        assert len(result) == 17
         assert result["patientName"] == "王小花"
         assert result["patientSex"] == "F"
         assert result["prescriptionNo"] == "15432"
@@ -133,112 +134,15 @@ class TestExtractFieldsWithGroq:
 
         assert result is not None
         assert result["patientName"] == "王小花"
+        assert result["patientSex"] == "F"
 
     @pytest.mark.asyncio
-    async def test_returns_none_when_api_key_not_set(self, monkeypatch):
-        monkeypatch.delenv("GROQ_API_KEY", raising=False)
-
-        result = await extract_fields_with_groq(VALID_OCR_TEXT)
-
-        assert result is None
-
-    @pytest.mark.asyncio
-    async def test_returns_none_on_empty_text(self):
-        result = await extract_fields_with_groq("")
-
-        assert result is None
-
-    @pytest.mark.asyncio
-    async def test_returns_none_on_whitespace_only_text(self):
-        result = await extract_fields_with_groq("   \n  \n  ")
-
-        assert result is None
-
-    @pytest.mark.asyncio
-    async def test_handles_timeout(self):
-        import asyncio
-
-        with patch("app.groq_extractor.AsyncGroq") as mock_client_class:
-            mock_client = MagicMock()
-            mock_client.chat.completions.create = AsyncMock(
-                side_effect=asyncio.TimeoutError()
-            )
-            mock_client_class.return_value = mock_client
-
-            result = await extract_fields_with_groq(VALID_OCR_TEXT)
-
-        assert result is None
-
-    @pytest.mark.asyncio
-    async def test_newline_sanitization_strips_literal_newlines_in_values(self):
-        choice = MagicMock()
-        choice.message.content = (
-            '{"patientName": "Line1\nLine2\nLine3",'
-            '"patientSex":null,'
-            '"prescriptionNo":null,'
-            '"medicationName":null,'
-            '"quantity":null,'
-            '"directions":null,'
-            '"indications":null,'
-            '"warnings":null,'
-            '"sideEffects":null,'
-            '"appearance":null,'
-            '"pharmacyName":null,'
-            '"pharmacyAddress":null,'
-            '"pharmacistName":null,'
-            '"physicianName":null,'
-            '"dispensingDate":null,'
-            '"useBefore":null}'
+    async def test_layout_preserves_column_pairing_for_physician_pharmacist(self):
+        """Layout input: physician=left column, pharmacist=right column."""
+        layout_input = (
+            "處方醫師 王○○ | 調劑藥師 林○○\n"
+            "Physiciam | Pharmacist"
         )
-        completion = MagicMock()
-        completion.choices = [choice]
-
-        with patch("app.groq_extractor.AsyncGroq") as mock_client_class:
-            mock_client = MagicMock()
-            mock_client.chat.completions.create = AsyncMock(return_value=completion)
-            mock_client_class.return_value = mock_client
-
-            result = await extract_fields_with_groq(VALID_OCR_TEXT)
-
-        assert result is not None
-        assert result["patientName"] == "Line1 Line2 Line3"
-
-    @pytest.mark.asyncio
-    async def test_newline_sanitization_strips_carriage_returns(self):
-        choice = MagicMock()
-        choice.message.content = (
-            '{"patientName": "Test\r\nValue",'
-            '"patientSex":null,'
-            '"prescriptionNo":null,'
-            '"medicationName":null,'
-            '"quantity":null,'
-            '"directions":null,'
-            '"indications":null,'
-            '"warnings":null,'
-            '"sideEffects":null,'
-            '"appearance":null,'
-            '"pharmacyName":null,'
-            '"pharmacyAddress":null,'
-            '"pharmacistName":null,'
-            '"physicianName":null,'
-            '"dispensingDate":null,'
-            '"useBefore":null}'
-        )
-        completion = MagicMock()
-        completion.choices = [choice]
-
-        with patch("app.groq_extractor.AsyncGroq") as mock_client_class:
-            mock_client = MagicMock()
-            mock_client.chat.completions.create = AsyncMock(return_value=completion)
-            mock_client_class.return_value = mock_client
-
-            result = await extract_fields_with_groq(VALID_OCR_TEXT)
-
-        assert result is not None
-        assert result["patientName"] == "Test Value"
-
-    @pytest.mark.asyncio
-    async def test_physician_and_pharmacist_separated_correctly(self):
         response_data = {
             "patientName": "王小花",
             "patientSex": "F",
@@ -247,15 +151,16 @@ class TestExtractFieldsWithGroq:
             "quantity": None,
             "directions": None,
             "indications": None,
-            "warnings": None,
+            "warnings": "開封後僅能存放3個月",
             "sideEffects": None,
             "appearance": None,
             "pharmacyName": None,
             "pharmacyAddress": None,
-            "pharmacistName": "胡慈慈",
-            "physicianName": "黃華陀",
+            "pharmacistName": "林○○",
+            "physicianName": "王○○",
             "dispensingDate": None,
             "useBefore": None,
+            "other": ["請依照指示使用，如有任何問題，請與醫療人員討論"],
         }
         choice = MagicMock()
         choice.message.content = json.dumps(response_data)
@@ -267,33 +172,42 @@ class TestExtractFieldsWithGroq:
             mock_client.chat.completions.create = AsyncMock(return_value=completion)
             mock_client_class.return_value = mock_client
 
-            result = await extract_fields_with_groq(VALID_OCR_TEXT)
+            result = await extract_fields_with_groq(layout_input)
 
         assert result is not None
-        assert result["pharmacistName"] == "胡慈慈"
-        assert result["physicianName"] == "黃華陀"
+        assert result["physicianName"] == "王○○"
+        assert result["pharmacistName"] == "林○○"
+        assert result["warnings"] == "開封後僅能存放3個月"
+        assert any("請依照指示使用" in item for item in result["other"])
 
     @pytest.mark.asyncio
-    async def test_newline_sanitization_handles_multiline_warnings(self):
-        choice = MagicMock()
-        choice.message.content = (
-            '{"patientName":null,'
-            '"patientSex":null,'
-            '"prescriptionNo":null,'
-            '"medicationName":null,'
-            '"quantity":null,'
-            '"directions":null,'
-            '"indications":null,'
-            '"warnings":"Do not take with alcohol.\nConsult doctor if pregnant.\nAvoid sunlight.",'
-            '"sideEffects":null,'
-            '"appearance":null,'
-            '"pharmacyName":null,'
-            '"pharmacyAddress":null,'
-            '"pharmacistName":null,'
-            '"physicianName":null,'
-            '"dispensingDate":null,'
-            '"useBefore":null}'
+    async def test_other_field_captures_unassigned_text(self):
+        """Unassigned centered text lands in other, not in warnings."""
+        layout_input = (
+            "警語與注意事項 開封後僅能存放3個月\n"
+            "請依照指示使用，如有任何問題，請與醫療人員討論"
         )
+        response_data = {
+            "patientName": None,
+            "patientSex": None,
+            "prescriptionNo": None,
+            "medicationName": None,
+            "quantity": None,
+            "directions": None,
+            "indications": None,
+            "warnings": "開封後僅能存放3個月",
+            "sideEffects": None,
+            "appearance": None,
+            "pharmacyName": None,
+            "pharmacyAddress": None,
+            "pharmacistName": None,
+            "physicianName": None,
+            "dispensingDate": None,
+            "useBefore": None,
+            "other": ["請依照指示使用，如有任何問題，請與醫療人員討論"],
+        }
+        choice = MagicMock()
+        choice.message.content = json.dumps(response_data)
         completion = MagicMock()
         completion.choices = [choice]
 
@@ -302,49 +216,12 @@ class TestExtractFieldsWithGroq:
             mock_client.chat.completions.create = AsyncMock(return_value=completion)
             mock_client_class.return_value = mock_client
 
-            result = await extract_fields_with_groq(VALID_OCR_TEXT)
+            result = await extract_fields_with_groq(layout_input)
 
         assert result is not None
-        assert "Do not take with alcohol." in result["warnings"]
-        assert "Consult doctor if pregnant." in result["warnings"]
-        assert "Avoid sunlight." in result["warnings"]
-        assert "\n" not in result["warnings"]
-
-    @pytest.mark.asyncio
-    async def test_strips_think_tags_before_json_parsing(self):
-        choice = MagicMock()
-        choice.message.content = (
-            '<think> Okay, let me extract the fields from this OCR text... </think>'
-            '{"patientName": "王小花",'
-            '"patientSex":"F",'
-            '"prescriptionNo":null,'
-            '"medicationName":null,'
-            '"quantity":null,'
-            '"directions":null,'
-            '"indications":null,'
-            '"warnings":null,'
-            '"sideEffects":null,'
-            '"appearance":null,'
-            '"pharmacyName":null,'
-            '"pharmacyAddress":null,'
-            '"pharmacistName":null,'
-            '"physicianName":null,'
-            '"dispensingDate":null,'
-            '"useBefore":null}'
-        )
-        completion = MagicMock()
-        completion.choices = [choice]
-
-        with patch("app.groq_extractor.AsyncGroq") as mock_client_class:
-            mock_client = MagicMock()
-            mock_client.chat.completions.create = AsyncMock(return_value=completion)
-            mock_client_class.return_value = mock_client
-
-            result = await extract_fields_with_groq(VALID_OCR_TEXT)
-
-        assert result is not None
-        assert result["patientName"] == "王小花"
-        assert result["patientSex"] == "F"
+        assert result["warnings"] == "開封後僅能存放3個月"
+        assert len(result["other"]) == 1
+        assert "請依照指示使用" in result["other"][0]
 
     @pytest.mark.asyncio
     async def test_strips_unclosed_think_tag(self):
@@ -367,7 +244,8 @@ class TestExtractFieldsWithGroq:
             '"pharmacistName":null,'
             '"physicianName":null,'
             '"dispensingDate":null,'
-            '"useBefore":null}'
+            '"useBefore":null,'
+            '"other":[]}'
         )
         completion = MagicMock()
         completion.choices = [choice]

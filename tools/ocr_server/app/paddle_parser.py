@@ -8,6 +8,7 @@ from PIL import Image
 
 from .schemas import OcrElement, ParsedPage, ParsedResult
 from .groq_extractor import extract_fields_with_groq
+from .layout import serialize_layout
 
 _ocr = None
 _lock = asyncio.Lock()
@@ -273,13 +274,14 @@ async def parse_image_bytes(image_bytes: bytes) -> ParsedResult:
         elements = [el for el in elements if el.confidence >= 0.75]
 
         raw_text = "\n".join(el.text for el in elements)
+        layout_text = serialize_layout(elements, img_width)
 
         case_fields = None
         extraction_engine = "none"
         extraction_fallback = False
 
         try:
-            case_fields = await extract_fields_with_groq(raw_text)
+            case_fields = await extract_fields_with_groq(layout_text)
             if case_fields is not None:
                 extraction_engine = "llm"
             else:

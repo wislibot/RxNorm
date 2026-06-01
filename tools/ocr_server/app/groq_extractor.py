@@ -51,6 +51,29 @@ Do not output the Chinese character.
 label ONLY.
 8. For physicianName: extract from 處方醫師 or Physician \
 label ONLY. Never mix the two.
+9. INPUT IS A SPATIAL LAYOUT. Each line is one visual row. \
+Within a row, cells are separated by " | " and ordered \
+left-to-right. A value is normally the cell to the RIGHT \
+of its label, or the cell BELOW it on the next row.
+10. A ROW MAY HOLD TWO INDEPENDENT PAIRS. When a row \
+contains a left pair and a right pair (separated by " | "), \
+pair each label with the value in the SAME COLUMN BAND. \
+Never pair a left-column label with a right-column value.
+11. PHYSICIAN vs PHARMACIST BY COLUMN. 處方醫師 / Physician \
+is the LEFT pair; 調劑藥師 / Pharmacist is the RIGHT pair. \
+Assign by column position, ignoring which name was emitted \
+first.
+12. UNSIGNED SINK. If text cannot be confidently attached to \
+a labeled field — e.g. a centered standalone sentence with \
+no adjacent label, footer/contact lines — put it in the \
+"other" array. Do NOT force it into warnings or sideEffects. \
+Leaving a field null is correct and preferred over a wrong \
+value.
+13. FIELD BOUNDARIES STOP AT THE NEXT LABEL. A field's value \
+is only the text in the same row/column as its label, up to \
+the next label or the next free-floating row. \
+警語與注意事項 captures only its adjacent value, not the \
+disclaimer below it.
 
 Field labels to recognize (standard AND variants):
 
@@ -145,8 +168,8 @@ useBefore:
   Variants: Use Before, Expiry date, 使用期限, \
             使用矽限 (Expiry date)
 
-Return ONLY a valid JSON object with exactly these 16 keys.
-All values must be strings or null.
+Return ONLY a valid JSON object with exactly these 17 keys.
+All values must be strings or null, except "other" which is a string array.
 For multi-line text fields (warnings, sideEffects, directions),
 join lines with a space — do NOT use newline characters inside
 JSON string values.
@@ -168,11 +191,12 @@ No markdown, no code fences, no explanation outside the JSON.
   "pharmacistName": string | null,
   "physicianName": string | null,
   "dispensingDate": string | null,
-  "useBefore": string | null
+  "useBefore": string | null,
+  "other": string[]
 }}
 
-OCR Text:
-{raw_text}
+Layout Text:
+{layout_text}
 
 IMPORTANT: Do NOT use <think> tags or any reasoning.
 Respond with ONLY the JSON object starting with curly brace."""
@@ -187,18 +211,18 @@ def _strip_markdown_fences(text: str) -> str:
     return stripped.strip()
 
 
-async def extract_fields_with_groq(raw_text: str) -> Optional[dict]:
+async def extract_fields_with_groq(layout_text: str) -> Optional[dict]:
     api_key = os.environ.get("GROQ_API_KEY")
     if not api_key:
         print("[Groq] GROQ_API_KEY not set, skipping LLM extraction")
         return None
 
-    if not raw_text or not raw_text.strip():
-        print("[Groq] Empty raw text, skipping LLM extraction")
+    if not layout_text or not layout_text.strip():
+        print("[Groq] Empty layout text, skipping LLM extraction")
         return None
 
     client = AsyncGroq(api_key=api_key)
-    prompt = _PROMPT_TEMPLATE.format(raw_text=raw_text)
+    prompt = _PROMPT_TEMPLATE.format(layout_text=layout_text)
 
     try:
         response = await asyncio.wait_for(
