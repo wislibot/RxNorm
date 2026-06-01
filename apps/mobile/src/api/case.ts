@@ -128,20 +128,36 @@ function getMedicationCandidateLines(input: CreateCaseInput) {
     });
   }
 
+  let sectionLines: string[];
   if (groupedMedicationItems.length > 0) {
-    return groupedMedicationItems.map((item) => item.text);
+    sectionLines = groupedMedicationItems.map((item) => item.text);
+  } else {
+    const raw = input.sectionedOcr?.sections.medication.texts ?? [];
+    sectionLines = raw.map((line) => line.trim()).filter(Boolean);
+    if (!sectionLines.length) {
+      sectionLines = extractDetectedItems({
+        ocrRawText: input.ocrRawText,
+        sectionedOcr: input.sectionedOcr,
+      }).map((item) => item.displayName);
+    }
   }
 
-  const sectionLines = input.sectionedOcr?.sections.medication.texts ?? [];
-  const trimmedSectionLines = sectionLines.map((line) => line.trim()).filter(Boolean);
-  if (sectionLines.length > 0) {
-    return trimmedSectionLines;
-  }
+  const remoteMed = input.sectionedOcr?.modelData?.case_fields?.medicationName ?? '';
+  const remoteLines = remoteMed
+    .split(/[\n,;\u3001]|  +/)
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0);
 
-  return extractDetectedItems({
-    ocrRawText: input.ocrRawText,
-    sectionedOcr: input.sectionedOcr,
-  }).map((item) => item.displayName);
+  const seen = new Set<string>();
+  const union: string[] = [];
+  for (const l of [...remoteLines, ...sectionLines]) {
+    const key = l.toUpperCase().replace(/\s+/g, ' ').trim();
+    if (key && !seen.has(key)) {
+      seen.add(key);
+      union.push(l);
+    }
+  }
+  return union;
 }
 
 function buildStoredOcrSections(
@@ -181,10 +197,11 @@ function buildStoredOcrSections(
 }
 
 function mapMedicationMatchesToDetectedItems(
-  medicationLines: string[],
+  candidateLines: string[],
   matchRows: RxMedicationLineMatchRow[] | null | undefined,
+  medicationName?: string,
 ): { detectedItems: Array<Record<string, unknown>>; ingredientIds: string[] } {
-  if (!medicationLines.length) {
+  if (!candidateLines.length) {
     return { detectedItems: [], ingredientIds: [] };
   }
 
@@ -193,29 +210,53 @@ function mapMedicationMatchesToDetectedItems(
     rowsByIndex.set(row.input_index, row);
   }
 
+  const matchedById = new Map<string, Record<string, unknown>>();
   const ingredientIds = new Set<string>();
-  const detectedItems = medicationLines.map((line, index) => {
-    const match = rowsByIndex.get(index);
-    const isMatched = match?.match_status === 'matched' && !!match.ingredient_id;
 
-    if (isMatched) {
-      ingredientIds.add(match.ingredient_id);
+  candidateLines.forEach((line, i) => {
+    const m = rowsByIndex.get(i);
+    if (m?.match_status === 'matched' && m.ingredient_id) {
+      ingredientIds.add(m.ingredient_id);
+      if (!matchedById.has(m.ingredient_id)) {
+        matchedById.set(m.ingredient_id, {
+          confidence: m.confidence ?? null,
+          display_name: m.ingredient_canonical_name ?? m.input_text ?? line,
+          ingredient_id: m.ingredient_id,
+          match_method: m.match_method ?? null,
+          match_status: 'matched',
+          nhi_code: null,
+          note: null,
+          raw_text: m.input_text ?? line,
+          source: 'ocr_line',
+        });
+      }
     }
-
-    const canonical = match?.ingredient_canonical_name ?? null;
-
-    return {
-      confidence: match?.confidence ?? null,
-      display_name: isMatched && canonical ? canonical : (match?.input_text ?? line),
-      ingredient_id: isMatched ? match?.ingredient_id : null,
-      match_method: match?.match_method ?? null,
-      match_status: isMatched ? 'matched' : 'unmatched',
-      nhi_code: null,
-      note: null,
-      raw_text: match?.input_text ?? line,
-      source: 'ocr_line',
-    };
   });
+
+  let detectedItems = Array.from(matchedById.values());
+
+  // SAFETY: "Suppress unmatched" must NEVER hide a real drug. When there are zero
+  // matches and a medicationName exists, we always surface it as a single fallback
+  // card so the user sees something for the medication. The only things fully
+  // suppressed are unmatched fragment/label lines when at least one match exists.
+  if (detectedItems.length === 0) {
+    const fallbackText = (medicationName ?? '').trim()
+      || [...candidateLines].sort((a, b) => b.length - a.length)[0]
+      || '';
+    if (fallbackText) {
+      detectedItems = [{
+        confidence: null,
+        display_name: fallbackText,
+        ingredient_id: null,
+        match_method: null,
+        match_status: 'unmatched',
+        nhi_code: null,
+        note: null,
+        raw_text: fallbackText,
+        source: 'ocr_line',
+      }];
+    }
+  }
 
   return {
     detectedItems,
@@ -279,9 +320,12 @@ export async function createCase(input: CreateCaseInput, client: AppSupabaseClie
     remoteCaseFields,
   );
 
+  const medicationName = input.sectionedOcr?.modelData?.case_fields?.medicationName ?? undefined;
+
   const { detectedItems, ingredientIds } = mapMedicationMatchesToDetectedItems(
     medicationLines,
     (matchedRows ?? []) as RxMedicationLineMatchRow[],
+    medicationName,
   );
   const uniqueIngredientIds = Array.from(new Set(ingredientIds));
 
