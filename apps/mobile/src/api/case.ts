@@ -142,22 +142,7 @@ function getMedicationCandidateLines(input: CreateCaseInput) {
     }
   }
 
-  const remoteMed = input.sectionedOcr?.modelData?.case_fields?.medicationName ?? '';
-  const remoteLines = remoteMed
-    .split(/[\n,;\u3001]|  +/)
-    .map((s) => s.trim())
-    .filter((s) => s.length > 0);
-
-  const seen = new Set<string>();
-  const union: string[] = [];
-  for (const l of [...remoteLines, ...sectionLines]) {
-    const key = l.toUpperCase().replace(/\s+/g, ' ').trim();
-    if (key && !seen.has(key)) {
-      seen.add(key);
-      union.push(l);
-    }
-  }
-  return union;
+  return sectionLines;
 }
 
 function buildStoredOcrSections(
