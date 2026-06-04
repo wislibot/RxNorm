@@ -126,4 +126,5 @@ def test_run_rebuild_uses_transactional_clear_and_rebuilds_pending_tfda_mismatch
         "rx_tfda_permits",
         "rx_nhi_tfda_map",
         "rx_atc_reference_latest",
+        "rx_ingredient_tokens",
     ]

@@ -15,6 +15,7 @@ CURATED_RELEASE_TABLES = [
     "rx_nhi_tfda_map",
     "rx_name_variants",
     "rx_review_queue",
+    "rx_ingredient_tokens",
     "rx_drug_products",
     "rx_ingredient_concepts",
     "rx_tfda_permits",
@@ -97,6 +98,11 @@ CURATED_TABLE_COLUMNS = {
         "note",
         "snapshot_date",
     ),
+    "rx_ingredient_tokens": (
+        "ingredient_id",
+        "token",
+        "token_stem",
+    ),
 }
 
 
@@ -145,6 +151,7 @@ def run_rebuild(repository, *, review_threshold: float = 0.6) -> dict[str, int]:
             "rx_tfda_permits",
             "rx_nhi_tfda_map",
             "rx_atc_reference_latest",
+            "rx_ingredient_tokens",
         ):
             counts[table_name] = repository.replace_table(
                 table_name,

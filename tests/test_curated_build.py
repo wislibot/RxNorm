@@ -995,3 +995,123 @@ def test_build_curated_payload_resolves_licid_links_to_tfda_permits() -> None:
             "created_at": payload["rx_nhi_tfda_map"][0]["created_at"],
         }
     ]
+
+
+def test_stem_word_handles_common_english_plurals() -> None:
+    from etl.curated_build import _stem_word
+
+    # Basic plurals
+    assert _stem_word("SENNOSIDES") == "SENNOSIDE"
+    assert _stem_word("TABLETS") == "TABLET"
+    assert _stem_word("CAPSULES") == "CAPSULE"
+
+    # -IES → -Y
+    assert _stem_word("CITIES") == "CITY"
+    assert _stem_word("RIES") == "RY"  # short but >3
+
+    # -SES, -XES, -ZES (root ends in S/X/Z, plural adds ES)
+    assert _stem_word("ASSESSES") == "ASSESS"
+    assert _stem_word("BOXES") == "BOX"
+    assert _stem_word("BUZZES") == "BUZZ"
+
+    # -ES after non-S
+    assert _stem_word("CHANGES") == "CHANGE"
+
+    # Short words (≤3) are not stemmed
+    assert _stem_word("MG") == "MG"
+    assert _stem_word("IU") == "IU"
+
+    # Already singular
+    assert _stem_word("OMEPRAZOLE") == "OMEPRAZOLE"
+    assert _stem_word("ACARBOSE") == "ACARBOSE"
+
+    # Words ending in SS (not plural)
+    assert _stem_word("GLASS") == "GLASS"
+
+
+def test_build_ingredient_tokens_generates_correct_tokens() -> None:
+    from etl.curated_build import _build_ingredient_tokens
+
+    concepts = [
+        {
+            "ingredient_id": "id-1",
+            "canonical_name": "OMEPRAZOLE",
+            "canonical_name_normalized": "OMEPRAZOLE",
+        },
+        {
+            "ingredient_id": "id-2",
+            "canonical_name": "TIOTROPIUM BROMIDE",
+            "canonical_name_normalized": "TIOTROPIUM BROMIDE",
+        },
+    ]
+
+    tokens = _build_ingredient_tokens(concepts)
+
+    # OMEPRAZOLE → 1 token
+    omeprazole_tokens = [t for t in tokens if t["ingredient_id"] == "id-1"]
+    assert len(omeprazole_tokens) == 1
+    assert omeprazole_tokens[0]["token"] == "OMEPRAZOLE"
+    assert omeprazole_tokens[0]["token_stem"] == "OMEPRAZOLE"
+
+    # TIOTROPIUM BROMIDE → 2 tokens
+    tio_tokens = [t for t in tokens if t["ingredient_id"] == "id-2"]
+    assert len(tio_tokens) == 2
+    token_words = {t["token"] for t in tio_tokens}
+    assert token_words == {"TIOTROPIUM", "BROMIDE"}
+
+
+def test_build_ingredient_tokens_deduplicates_across_concepts() -> None:
+    from etl.curated_build import _build_ingredient_tokens
+
+    # Two concepts sharing the same token (e.g. BROMIDE appears in multiple)
+    concepts = [
+        {"ingredient_id": "id-a", "canonical_name": "TIOTROPIUM BROMIDE", "canonical_name_normalized": "TIOTROPIUM BROMIDE"},
+        {"ingredient_id": "id-b", "canonical_name": "IPRATROPIUM BROMIDE", "canonical_name_normalized": "IPRATROPIUM BROMIDE"},
+    ]
+
+    tokens = _build_ingredient_tokens(concepts)
+    # Each (ingredient_id, token) pair should be unique
+    pairs = [(t["ingredient_id"], t["token"]) for t in tokens]
+    assert len(pairs) == len(set(pairs))
+    # BROMIDE should appear once per ingredient
+    bromide_count = sum(1 for t in tokens if t["token"] == "BROMIDE")
+    assert bromide_count == 2
+
+
+def test_build_curated_payload_includes_ingredient_tokens() -> None:
+    from etl.curated_build import build_curated_payload
+
+    raw_data = {
+        "raw_nhi_items": [
+            {
+                "nhi_code": "A0001",
+                "name_zh": "藥品",
+                "name_en": "DRUG",
+                "ingredient_text": "Acetaminophen",
+                "dose_form": "tablet",
+                "strength_value": Decimal("500"),
+                "strength_unit": "MG",
+                "combo_flag": "單方",
+                "atc_code": None,
+                "tfda_link": None,
+                "price_nhi": Decimal("10"),
+                "effective_start": date(2024, 1, 1),
+                "effective_end": None,
+            }
+        ],
+        "raw_tfda_permits_active": [],
+        "raw_tfda_permits_all": [],
+        "raw_atc_ddd": [],
+    }
+
+    payload = build_curated_payload(raw_data)
+    tokens = payload["rx_ingredient_tokens"]
+
+    # Should have at least one token for ACETAMINOPHEN
+    assert len(tokens) >= 1
+    token_words = {t["token"] for t in tokens}
+    assert "ACETAMINOPHEN" in token_words
+
+    # Check stem is present
+    acetaminophen_token = next(t for t in tokens if t["token"] == "ACETAMINOPHEN")
+    assert acetaminophen_token["token_stem"] == "ACETAMINOPHEN"

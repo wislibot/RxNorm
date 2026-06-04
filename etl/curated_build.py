@@ -167,6 +167,7 @@ def build_curated_payload(
                 review_queue.append(review_item)
 
     ingredient_concepts = sorted(ingredient_concepts_map.values(), key=lambda row: row["canonical_name_normalized"])
+    ingredient_tokens = _build_ingredient_tokens(ingredient_concepts)
     product_ingredients = _dedupe_product_ingredients(product_ingredients)
     name_variants = _dedupe_variants(name_variants)
     nhi_tfda_map.sort(key=lambda row: (row["nhi_code"], row["tfda_permit_no"]))
@@ -175,6 +176,7 @@ def build_curated_payload(
     return {
         "rx_drug_products": drug_products,
         "rx_ingredient_concepts": ingredient_concepts,
+        "rx_ingredient_tokens": ingredient_tokens,
         "rx_product_ingredients": product_ingredients,
         "rx_name_variants": name_variants,
         "rx_tfda_permits": tfda_permits,
@@ -483,6 +485,23 @@ def _canonical_name(value: str) -> str:
     return re.sub(r"\s+", " ", value.strip())
 
 
+def _stem_word(word: str) -> str:
+    """Simple English plural stemmer for ingredient token matching.
+
+    Handles: -IES→-Y, -SES/-XES/-ZES→strip 2, -[non-S]S→strip 1.
+    Not a general-purpose stemmer — tuned for drug ingredient names.
+    """
+    if len(word) <= 3:
+        return word
+    if word.endswith("IES"):
+        return word[:-3] + "Y"
+    if word.endswith(("SES", "XES", "ZES")):
+        return word[:-2]
+    if word.endswith("S") and len(word) > 2 and word[-2] != "S":
+        return word[:-1]
+    return word
+
+
 def _ensure_ingredient_concept(ingredient_concepts_map: dict[str, dict[str, Any]], ingredient_text: str) -> dict[str, Any]:
     canonical = _canonical_name(ingredient_text)
     normalized = normalize_text(canonical)
@@ -497,6 +516,30 @@ def _ensure_ingredient_concept(ingredient_concepts_map: dict[str, dict[str, Any]
         }
         ingredient_concepts_map[normalized] = concept
     return concept
+
+
+def _build_ingredient_tokens(
+    ingredient_concepts: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    """Generate token rows for indexed ingredient matching."""
+    tokens: list[dict[str, Any]] = []
+    seen: set[tuple[str, str]] = set()
+    for concept in ingredient_concepts:
+        ingredient_id = concept["ingredient_id"]
+        normalized = concept.get("canonical_name_normalized") or normalize_text(concept["canonical_name"])
+        for word in normalized.split():
+            if len(word) < 2:
+                continue
+            key = (ingredient_id, word)
+            if key in seen:
+                continue
+            seen.add(key)
+            tokens.append({
+                "ingredient_id": ingredient_id,
+                "token": word,
+                "token_stem": _stem_word(word),
+            })
+    return tokens
 
 
 def _build_product_ingredient_rows(
