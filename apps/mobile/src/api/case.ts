@@ -145,6 +145,11 @@ function getMedicationCandidateLines(input: CreateCaseInput) {
     }
   }
 
+  const llmMedicationName = input.sectionedOcr?.modelData?.case_fields?.medicationName?.trim();
+  if (llmMedicationName && !sectionLines.includes(llmMedicationName)) {
+    sectionLines.unshift(llmMedicationName);
+  }
+
   return sectionLines;
 }
 
