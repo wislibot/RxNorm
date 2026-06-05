@@ -1,3 +1,33 @@
+# Product-Level Matching in rx_match_medication_lines
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** Add 2 product-level matching passes as the FIRST priority in `rx_match_medication_lines` RPC, so combo drugs like "Trajenta DUO 2.5/850mg" match at the product level before the combo guard rejects them at the ingredient level.
+
+**Architecture:** Prepend two new CTE passes (product exact, product token) to the existing 4-pass function. Product matches return the first ingredient_id from `rx_product_ingredients` (or null for pure combos). The combo guard remains in passes 3-6 for ingredient-only matches. Return type gains 2 new columns (`product_id`, `product_display_name`) — existing mobile callers use positional columns and will pick up new columns at the end without breaking.
+
+**Tech Stack:** PostgreSQL (Supabase), PL/pgSQL test harness
+
+---
+
+## File Map
+
+| File | Action | Purpose |
+|------|--------|---------|
+| `supabase/migrations/202606050004_add_product_match_pass.sql` | **Create** | Migration: DROP + CREATE `rx_match_medication_lines` and `rx_test_match_medication_lines` |
+
+No other files change. The mobile app calls this RPC positionally — new columns at the end are additive.
+
+---
+
+## Task 1: Write the Migration File
+
+**Files:**
+- Create: `supabase/migrations/202606050004_add_product_match_pass.sql`
+
+### Step 1: Write the DROP + CREATE function SQL
+
+```sql
 -- Add product-level matching as first pass in rx_match_medication_lines
 --
 -- PROBLEM: Combo drugs like "Trajenta DUO 2.5/850mg" contain 2+ ingredients,
@@ -46,11 +76,7 @@ as $$
                         substring(source.input_text from position('(' in source.input_text) + 1 for
                             position(')' in source.input_text) - position('(' in source.input_text) - 1))
                 else null
-            end as paren_normalized_text,
-            -- For product matching: strip parenthesized content + CJK
-            public.rx_normalize_text(
-                regexp_replace(source.input_text, '\\([^)]*\\)', '', 'g')
-            ) as product_match_text
+            end as paren_normalized_text
         from unnest(coalesce(medication_lines, '{}'::text[])) with ordinality as source(input_text, ordinality)
     ),
 
@@ -66,7 +92,7 @@ as $$
         from input_lines il
         join public.rx_name_variants nv
             on nv.target_type = 'product'
-           and nv.normalized_text = il.product_match_text
+           and nv.normalized_text = il.normalized_text
         join public.rx_drug_products p
             on p.nhi_code = nv.target_id
         left join public.rx_product_ingredients pi
@@ -380,8 +406,11 @@ as $$
     left join token_unique tu on tu.input_index = il.input_index
     order by il.input_index;
 $$;
+```
 
+### Step 2: Write the test function SQL
 
+```sql
 -- =============================================================================
 -- TESTS: rx_match_medication_lines (with product passes)
 -- =============================================================================
@@ -511,10 +540,10 @@ begin
         v_status, v_method, v_confidence, v_product_id, v_canonical);
     return next;
 
-    -- TEST 12: Product exact match — Chinese name matches same product
+    -- TEST 12: Product exact match — Chinese name '糖倍平膜衣錠' matches same product
     select match_status, match_method, confidence, product_id, ingredient_canonical_name
     into v_status, v_method, v_confidence, v_product_id, v_canonical
-    from public.rx_match_medication_lines(ARRAY['糖倍平 膜衣錠 2.5/850 毫克']);
+    from public.rx_match_medication_lines(ARRAY['糖倍平膜衣錠']);
 
     test_name := 'product_exact_chinese_name_matches';
     passed := (v_status = 'matched'
@@ -526,3 +555,43 @@ begin
     return next;
 end;
 $$;
+```
+
+### Step 3: Verify migration file structure
+
+Check that:
+- `drop function if exists` comes before `create or replace`
+- Return type has 10 columns (added `product_id text` and `product_display_name text`)
+- Pass 1 (product_exact) joins `rx_name_variants WHERE target_type='product'` -> `rx_drug_products` -> `rx_product_ingredients`
+- Pass 2 (product_token) uses token coverage logic against product name variants
+- Passes 3-6 are identical to current passes 1-4
+- Final SELECT has correct LEFT JOINs and CASE priority order (peu -> ptu -> cu -> au -> pu -> tu)
+- Test 7 input changed from `'Sennosides & Omeprazole 2mg'` to `'Linagliptin & Metformin'`
+- Tests 11-12 are new product match tests
+
+---
+
+## Task 2: Verify Against Test Data
+
+**Prerequisite:** The ETL pipeline must have imported data that includes:
+- `rx_name_variants` rows with `target_type='product'` for Trajenta DUO (NHI code BC25792100)
+- `rx_drug_products` row for BC25792100 with `name_en='Trajenta Duo 2.5/850mg Film-Coated Tablets'` and `name_zh='糖倍平 膜衣錠 2.5/850 毫克'`
+- `rx_product_ingredients` rows linking BC25792100 to LINAGLIPTIN and METFORMIN ingredient_ids
+
+- [ ] Run `SELECT * FROM rx_test_match_medication_lines();` after applying migration
+- [ ] All 12 tests should pass
+- [ ] Run existing Python ETL tests: `uv run pytest tests/ -v` (no changes expected)
+
+---
+
+## Critical Design Decisions
+
+1. **`ingredient_canonical_name` for product matches:** Returns the product's `name_en` (or `name_zh` fallback) — this is what the user sees, not an ingredient name. This is intentional: for product matches, the product IS the canonical identifier.
+
+2. **`ingredient_id` for product matches:** Looks up `rx_product_ingredients` and returns the first ingredient_id. For combo products (2+ ingredients), this returns one ingredient (the first by UUID sort). The combo guard is irrelevant for product matches — the product matched as a whole.
+
+3. **`product_token` confidence = 0.70:** Lower than product_exact (0.95) but higher than ingredient_token (0.65). Token matching is fuzzy by nature.
+
+4. **Return type change:** Adding 2 columns at the end (`product_id`, `product_display_name`). The mobile app calls this RPC via Supabase and uses positional destructuring — new columns at the end are ignored by existing code. No mobile changes needed.
+
+5. **Combo guard untouched:** Passes 3-6 retain the existing combo guard behavior. Only product passes (1-2) bypass it.
