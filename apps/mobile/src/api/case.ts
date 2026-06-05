@@ -203,21 +203,11 @@ function mapMedicationMatchesToDetectedItems(
     rowsByIndex.set(row.input_index, row);
   }
 
-  if (__DEV__ && process.env.NODE_ENV !== 'test') {
-    console.log('[mapMatches] candidateLines count:', candidateLines.length, 'matchRows count:', (matchRows ?? []).length, 'rowsByIndex size:', rowsByIndex.size);
-    console.log('[mapMatches] rowsByIndex keys:', Array.from(rowsByIndex.keys()));
-    console.log('[mapMatches] candidateLines:', candidateLines.map((l, i) => i + ': ' + l));
-  }
-
   const matchedById = new Map<string, Record<string, unknown>>();
   const ingredientIds = new Set<string>();
 
   candidateLines.forEach((line, i) => {
     const m = rowsByIndex.get(i);
-
-    if (__DEV__ && process.env.NODE_ENV !== 'test') {
-      console.log('[mapMatches] line', i, '=>', line.slice(0, 60), '| match:', m ? JSON.stringify({match_status: m.match_status, ingredient_id: m.ingredient_id, ingredient_ids: m.ingredient_ids, match_method: m.match_method}) : 'NO_ROW');
-    }
 
     const hasIngredientIds = (m?.ingredient_ids?.length ?? 0) > 0;
     if (m?.match_status === 'matched' && (m.ingredient_id || hasIngredientIds)) {
@@ -247,10 +237,6 @@ function mapMedicationMatchesToDetectedItems(
   });
 
   let detectedItems = Array.from(matchedById.values());
-
-  if (__DEV__ && process.env.NODE_ENV !== 'test') {
-    console.log('[mapMatches] final detectedItems:', JSON.stringify(detectedItems.map(d => ({display_name: d.display_name, match_status: d.match_status, ingredient_id: d.ingredient_id})), null, 2));
-  }
 
   // SAFETY: "Suppress unmatched" must NEVER hide a real drug. When there are zero
   // matches and a medicationName exists, we always surface it as a single fallback
@@ -285,10 +271,6 @@ export async function createCase(input: CreateCaseInput, client: AppSupabaseClie
   const userId = await requireCurrentUserId(client);
   const medicationLines = getMedicationCandidateLines(input);
 
-  if (__DEV__ && process.env.NODE_ENV !== 'test') {
-    console.log('[createCase] medicationLines', JSON.stringify(medicationLines, null, 2));
-  }
-
   const remoteCaseFields = mapRemoteCaseFields(
     input.sectionedOcr?.modelData?.case_fields ?? null,
   );
@@ -308,10 +290,6 @@ export async function createCase(input: CreateCaseInput, client: AppSupabaseClie
   }
 
   const { data: matchedRows, error: matchError } = ingredientResult;
-
-  if (__DEV__ && process.env.NODE_ENV !== 'test') {
-    console.log('[createCase] rx_match_medication_lines response', JSON.stringify(matchedRows, null, 2));
-  }
 
   if (matchError) {
     console.error('[createCase] rx_match_medication_lines error', matchError);
