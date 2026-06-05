@@ -1,67 +1,23 @@
--- Tokenized ingredient lookup: replaces regex cartesian join in token pass.
+-- Fix token match logic in rx_match_medication_lines (final)
 --
--- PROBLEM: The token pass in rx_match_medication_lines does a regex cartesian
--- join (N input lines × M ingredients × 2 regex patterns). Already timed out
--- once (bag 2, error 57014). Won't scale beyond demo bags.
+-- PROBLEM 1: Logic direction inverted — checks "all input tokens in ingredient"
+-- instead of "all ingredient tokens in input". Dosage tokens like 12MG must
+-- exist in the ingredient, which fails.
 --
--- FIX: Pre-split ingredient canonical names into individual tokens stored in
--- an indexed table. Matching becomes an indexed JOIN instead of a regex scan.
+-- PROBLEM 2: Multiple candidates with identical token sets (e.g. SENNOSIDE,
+-- SENNOSIDE A, SENNOSIDE B all matching via token "SENNOSIDE") give
+-- candidate_count > 1, causing combo guard false rejection.
 --
--- Also handles plurals via a simple stem function (strip trailing S/ES/IES).
+-- PROBLEM 3: Cross join scans all ~13k ingredients per input line.
+-- Fix: reverse lookup — tokenize input, find ingredients via indexed
+-- rx_ingredient_tokens lookup, then verify coverage.
+--
+-- FIX: Rewrite token_candidates CTE:
+-- 1. Tokenize input stems via rx_strip_plural_stem
+-- 2. Find candidate ingredient_ids by indexed stem lookup
+-- 3. Verify ALL ingredient tokens are covered by input (ingredient ⊂ input)
+-- 4. Prefer base ingredient (shortest canonical_name) when duplicates exist
 
--- =============================================================================
--- 1. Stem function for plural handling
--- =============================================================================
-create or replace function public.rx_strip_plural_stem(word text)
-returns text
-language sql
-immutable
-as $$
-    select case
-        when length(word) <= 3 then word
-        when word ~* 'IES$' then substring(word from 1 for length(word) - 3) || 'Y'
-        when word ~* 'SES$' or word ~* 'XES$' or word ~* 'ZES$'
-            then substring(word from 1 for length(word) - 2)
-        when word ~* '[^S]S$' then substring(word from 1 for length(word) - 1)
-        else word
-    end;
-$$;
-
--- =============================================================================
--- 2. Token table
--- =============================================================================
-create table if not exists public.rx_ingredient_tokens (
-    ingredient_id uuid not null references public.rx_ingredient_concepts(ingredient_id) on delete cascade,
-    token text not null,
-    token_stem text not null,
-    primary key (ingredient_id, token)
-);
-
-create index if not exists idx_rx_ingredient_tokens_token
-    on public.rx_ingredient_tokens (token, ingredient_id);
-
-create index if not exists idx_rx_ingredient_tokens_stem
-    on public.rx_ingredient_tokens (token_stem, ingredient_id);
-
--- =============================================================================
--- 3. Populate from existing concepts (one-time seed; ETL rebuild replaces)
--- =============================================================================
-insert into public.rx_ingredient_tokens (ingredient_id, token, token_stem)
-select
-    c.ingredient_id,
-    t.token,
-    public.rx_strip_plural_stem(t.token) as token_stem
-from public.rx_ingredient_concepts c
-cross join lateral unnest(
-    string_to_array(c.canonical_name_normalized, ' ')
-) as t(token)
-where t.token <> ''
-  and length(t.token) >= 2
-on conflict (ingredient_id, token) do nothing;
-
--- =============================================================================
--- 4. Rewrite rx_match_medication_lines with indexed token pass
--- =============================================================================
 drop function if exists public.rx_match_medication_lines(text[]);
 
 create or replace function public.rx_match_medication_lines(medication_lines text[])
@@ -171,43 +127,73 @@ as $$
         from paren_candidates
         group by input_index
     ),
-    -- Pass 4: token match (indexed — replaces regex cartesian join)
-    -- For each input line, find ingredients where ALL tokens appear as whole words.
-    -- Uses indexed equality on rx_ingredient_tokens instead of regex scan.
-    -- Strategy: split input into tokens, verify each exists in token table for that ingredient.
-    token_candidates as (
+    -- Pass 4: token match (indexed reverse lookup)
+    -- PROBLEM 3 fix: no cross join. Tokenize input, find ingredients via
+    -- indexed rx_ingredient_tokens lookup, then verify coverage.
+    -- PROBLEM 1 fix: verify ALL ingredient tokens are covered by input
+    -- (ingredient tokens ⊂ input tokens). Extra input tokens are fine.
+    token_input_stems as (
         select
             il.input_index,
-            t.ingredient_id
+            public.rx_strip_plural_stem(input_token.token) as stem,
+            input_token.token as raw_token
         from input_lines il
-        cross join (
-            select distinct ingredient_id
-            from public.rx_ingredient_tokens
-        ) t
+        cross join lateral unnest(string_to_array(il.normalized_text, ' ')) as input_token(token)
         where coalesce(il.normalized_text, '') <> ''
-          -- Verify ALL tokens in input line exist for this ingredient (exact or stem match)
-          and not exists (
-              select 1
-              from unnest(string_to_array(il.normalized_text, ' ')) as input_token(token)
-              where input_token.token <> ''
-                and length(input_token.token) >= 2
-                and not exists (
-                    select 1
-                    from public.rx_ingredient_tokens tok
-                    where tok.ingredient_id = t.ingredient_id
-                      and (
-                          tok.token = input_token.token
-                          or tok.token_stem = input_token.token
-                          or tok.token_stem = public.rx_strip_plural_stem(input_token.token)
-                      )
-                )
-          )
+          and input_token.token <> ''
+          and length(input_token.token) >= 2
     ),
+    -- Find candidate ingredients by indexed stem match against input tokens
+    token_stem_matches as (
+        select distinct
+            tis.input_index,
+            rit.ingredient_id
+        from token_input_stems tis
+        join public.rx_ingredient_tokens rit
+            on rit.token_stem = tis.stem
+    ),
+    -- Verify ALL ingredient tokens are covered by the input (subset check)
+    token_candidate_sigs as (
+        select
+            sm.input_index,
+            sm.ingredient_id,
+            c.canonical_name,
+            string_agg(tok.token, '|' ORDER BY tok.token) as token_signature
+        from token_stem_matches sm
+        join public.rx_ingredient_concepts c
+            on c.ingredient_id = sm.ingredient_id
+        join public.rx_ingredient_tokens tok
+            on tok.ingredient_id = sm.ingredient_id
+        where not exists (
+            select 1
+            from public.rx_ingredient_tokens tok2
+            where tok2.ingredient_id = sm.ingredient_id
+              and not exists (
+                  select 1
+                  from token_input_stems tis
+                  where tis.input_index = sm.input_index
+                    and (tis.stem = tok2.token_stem or tis.raw_token = tok2.token)
+              )
+        )
+        group by sm.input_index, sm.ingredient_id, c.canonical_name
+    ),
+    token_candidates as (
+        select
+            input_index,
+            ingredient_id,
+            canonical_name,
+            token_signature
+        from token_candidate_sigs
+    ),
+    -- PROBLEM 2 fix: count distinct token_signatures, not ingredient_ids.
+    -- Ingredients sharing the same token set (e.g. SENNOSIDE / SENNOSIDE A / SENNOSIDE B)
+    -- produce one signature → candidate_count=1 → matched to base ingredient.
     token_unique as (
         select
             input_index,
-            count(distinct ingredient_id) as candidate_count,
-            min(ingredient_id::text)::uuid as ingredient_id
+            count(distinct token_signature) as candidate_count,
+            (array_agg(ingredient_id::text ORDER BY length(canonical_name), canonical_name))[1]::uuid as ingredient_id,
+            (array_agg(canonical_name ORDER BY length(canonical_name), canonical_name))[1] as canonical_name
         from token_candidates
         group by input_index
     )
@@ -233,11 +219,7 @@ as $$
             when canonical_unique.candidate_count = 1 then canonical_unique.canonical_name
             when alias_unique.candidate_count = 1 then alias_unique.canonical_name
             when paren_unique.candidate_count = 1 then paren_unique.canonical_name
-            when token_unique.candidate_count = 1 then (
-                select min(c.canonical_name)
-                from public.rx_ingredient_concepts c
-                where c.ingredient_id = token_unique.ingredient_id
-            )
+            when token_unique.candidate_count = 1 then token_unique.canonical_name
             else null
         end as ingredient_canonical_name,
         case
@@ -266,9 +248,12 @@ as $$
     order by input_lines.input_index;
 $$;
 
+
 -- =============================================================================
--- 5. Updated SQL tests
+-- TESTS: rx_match_medication_lines
 -- =============================================================================
+-- Run with: SELECT * FROM rx_test_match_medication_lines();
+
 create or replace function public.rx_test_match_medication_lines()
 returns table (test_name text, passed boolean, detail text)
 language plpgsql
