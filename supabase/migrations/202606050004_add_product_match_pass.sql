@@ -13,7 +13,8 @@
 --   Pass 6: ingredient_token (0.65) — unchanged
 --
 -- Product matches bypass the combo guard: the product IS the match.
--- ingredient_id is looked up from rx_product_ingredients (first row, or null).
+-- ingredient_id is the first row from rx_product_ingredients (for backwards compat).
+-- ingredient_ids is ALL rows from rx_product_ingredients (for combo drugs).
 
 drop function if exists public.rx_match_medication_lines(text[]);
 
@@ -24,6 +25,7 @@ returns table (
     normalized_text text,
     match_status text,
     ingredient_id uuid,
+    ingredient_ids uuid[],
     ingredient_canonical_name text,
     match_method text,
     confidence numeric,
@@ -335,6 +337,23 @@ as $$
             else null
         end as ingredient_id,
         case
+            when peu.candidate_count = 1 then (
+                select array_agg(pi.ingredient_id ORDER BY pi.ingredient_id)
+                from public.rx_product_ingredients pi
+                where pi.nhi_code = peu.product_id
+            )
+            when ptu.candidate_count = 1 then (
+                select array_agg(pi.ingredient_id ORDER BY pi.ingredient_id)
+                from public.rx_product_ingredients pi
+                where pi.nhi_code = ptu.product_id
+            )
+            when cu.candidate_count = 1 then ARRAY[cu.ingredient_id]
+            when au.candidate_count = 1 then ARRAY[au.ingredient_id]
+            when pu.candidate_count = 1 then ARRAY[pu.ingredient_id]
+            when tu.candidate_count = 1 then ARRAY[tu.ingredient_id]
+            else null
+        end as ingredient_ids,
+        case
             when peu.candidate_count = 1 then peu.product_display_name
             when ptu.candidate_count = 1 then ptu.product_display_name
             when cu.candidate_count = 1 then cu.canonical_name
@@ -396,6 +415,7 @@ declare
     v_method text;
     v_confidence numeric;
     v_ingredient_id uuid;
+    v_ingredient_ids uuid[];
     v_canonical text;
     v_product_id text;
     v_product_name text;
@@ -421,13 +441,16 @@ begin
     return next;
 
     -- TEST 3: Canonical exact takes precedence over token
-    select match_status, match_method, confidence
-    into v_status, v_method, v_confidence
+    select match_status, match_method, confidence, ingredient_id, ingredient_ids
+    into v_status, v_method, v_confidence, v_ingredient_id, v_ingredient_ids
     from public.rx_match_medication_lines(ARRAY['OMEPRAZOLE']);
 
     test_name := 'canonical_exact_precedence';
-    passed := (v_status = 'matched' and v_method = 'canonical_exact' and v_confidence = 0.95);
-    detail := format('status=%s method=%s confidence=%s', v_status, v_method, v_confidence);
+    passed := (v_status = 'matched'
+        and v_method = 'canonical_exact'
+        and v_confidence = 0.95
+        and v_ingredient_ids = ARRAY[v_ingredient_id]);
+    detail := format('status=%s method=%s confidence=%s ingredient_ids=%s', v_status, v_method, v_confidence, v_ingredient_ids);
     return next;
 
     -- TEST 4: Paren precedence over token
@@ -497,8 +520,8 @@ begin
     return next;
 
     -- TEST 11: Product exact match — 'Trajenta DUO 2.5& 850mg' matches BC25792100
-    select match_status, match_method, confidence, product_id, ingredient_canonical_name
-    into v_status, v_method, v_confidence, v_product_id, v_canonical
+    select match_status, match_method, confidence, product_id, ingredient_canonical_name, ingredient_ids
+    into v_status, v_method, v_confidence, v_product_id, v_canonical, v_ingredient_ids
     from public.rx_match_medication_lines(ARRAY['Trajenta DUO 2.5& 850mg']);
 
     test_name := 'product_exact_trajenta_duo_matches';
@@ -506,9 +529,11 @@ begin
         and v_method = 'product_exact'
         and v_confidence = 0.95
         and v_product_id = 'BC25792100'
-        and v_canonical = 'Trajenta Duo 2.5/850mg Film-Coated Tablets');
-    detail := format('status=%s method=%s confidence=%s product=%s canonical=%s',
-        v_status, v_method, v_confidence, v_product_id, v_canonical);
+        and v_canonical = 'Trajenta Duo 2.5/850mg Film-Coated Tablets'
+        and v_ingredient_ids is not null
+        and array_length(v_ingredient_ids, 1) >= 2);
+    detail := format('status=%s method=%s confidence=%s product=%s ingredient_ids=%s',
+        v_status, v_method, v_confidence, v_product_id, v_ingredient_ids);
     return next;
 
     -- TEST 12: Product exact match — Chinese name matches same product

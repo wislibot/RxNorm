@@ -108,6 +108,7 @@
   "casePageConfidenceLabel": "Confidence {{value}}%",
   "casePageConfidencePending": "Pending review",
   "casePageNhiCodeLabel": "NHI code: {{code}}",
+  "casePageActiveIngredientsLabel": "Active ingredients:",
   "casePageDoctorNoteLabel": "Doctor note",
   "casePageDoctorNotePlaceholder": "No note yet.",
   "casePageMockItemOneTitle": "Mock match: Amoxicillin 500 mg capsule",

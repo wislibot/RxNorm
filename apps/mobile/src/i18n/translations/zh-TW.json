@@ -108,6 +108,7 @@
   "casePageConfidenceLabel": "信心 {{value}}%",
   "casePageConfidencePending": "等待審查",
   "casePageNhiCodeLabel": "健保代碼：{{code}}",
+  "casePageActiveIngredientsLabel": "活性成分：",
   "casePageDoctorNoteLabel": "醫師備註",
   "casePageDoctorNotePlaceholder": "目前沒有備註。",
   "casePageMockItemOneTitle": "模擬比對：阿莫西林 500 mg 膠囊",

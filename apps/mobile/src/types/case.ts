@@ -9,6 +9,7 @@ export type DetectedItem = {
   matchStatus: 'matched' | 'unmatched';
   confidence: number | null;
   ingredientId?: string;
+  ingredientIds?: string[];
   matchMethod?: 'canonical_exact' | 'alias_exact' | 'paren_alias_exact' | null;
   nhiCode?: string;
   note?: string | null;

@@ -179,6 +179,14 @@ export function CasePageScreen({ route }: Props) {
     [caseRecord?.detectedItems],
   );
 
+  const ingredientNameMap = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const ing of ddiResult?.checked_ingredients ?? []) {
+      map.set(ing.ingredient_id, ing.canonical_name);
+    }
+    return map;
+  }, [ddiResult?.checked_ingredients]);
+
   const shouldShowUncheckedBanner = (ddiResult?.unchecked_ingredient_count ?? 0) > 0;
   const shouldShowCoverageGap =
     (caseRecord?.detectedItems.length ?? 0) > 0 && (caseRecord.ingredientIds.length === 0 || shouldShowUncheckedBanner);
@@ -239,24 +247,38 @@ export function CasePageScreen({ route }: Props) {
       <>
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>{t('casePageDetectedItemsTitle')}</Text>
-          {medGroups.map((group, groupIdx) => renderGroupCard(group, groupIdx))}
+          {medGroups.map((group, groupIdx) => renderGroupCard(group, groupIdx, ingredientNameMap))}
         </View>
         {otherGroups.length > 0 ? (
           <View style={styles.card}>
             <Text style={styles.sectionTitle}>{t('casePageOtherExtractedTitle')}</Text>
-            {otherGroups.map((group, groupIdx) => renderGroupCard(group, groupIdx))}
+            {otherGroups.map((group, groupIdx) => renderGroupCard(group, groupIdx, ingredientNameMap))}
           </View>
         ) : null}
       </>
     );
   };
 
-  const renderGroupCard = (group: MedicationGroup, groupIdx: number) => {
+  const renderGroupCard = (group: MedicationGroup, groupIdx: number, nameMap: Map<string, string>) => {
     const badgeLabel = group.matchStatus === 'other'
       ? t('casePageMatchStatus.unmatched')
       : t(`casePageMatchStatus.${group.matchStatus}`);
     const badgeStyle = group.matchStatus === 'matched' ? styles.matchedBadge : styles.unmatchedBadge;
     const badgeTextStyle = group.matchStatus === 'matched' ? styles.matchedBadgeText : styles.unmatchedBadgeText;
+
+    const allIngredientIds = new Set<string>();
+    for (const item of group.items) {
+      if (item.ingredientIds) {
+        for (const id of item.ingredientIds) {
+          allIngredientIds.add(id);
+        }
+      } else if (item.ingredientId) {
+        allIngredientIds.add(item.ingredientId);
+      }
+    }
+    const activeIngredientNames = Array.from(allIngredientIds)
+      .map((id) => nameMap.get(id))
+      .filter((name): name is string => !!name);
 
     return (
       <View key={`group-${group.matchStatus}-${groupIdx}`} style={styles.itemCard}>
@@ -281,6 +303,12 @@ export function CasePageScreen({ route }: Props) {
             </View>
           )}
         </View>
+        {activeIngredientNames.length > 0 ? (
+          <View style={styles.ingredientRow}>
+            <Text style={styles.ingredientLabel}>{t('casePageActiveIngredientsLabel')}</Text>
+            <Text style={styles.ingredientValue}>{activeIngredientNames.join(', ')}</Text>
+          </View>
+        ) : null}
         {group.lines.length > 1 ? (
           <View style={styles.linesList}>
             {group.lines.slice(0, 5).map((line, lineIdx) => (
@@ -608,6 +636,24 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: spacing.sm,
+  },
+  ingredientRow: {
+    alignItems: 'flex-start',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 4,
+    marginTop: spacing.xs,
+  },
+  ingredientLabel: {
+    color: colors.textMuted,
+    fontSize: typography.label,
+    fontWeight: '600',
+  },
+  ingredientValue: {
+    color: colors.text,
+    fontSize: typography.label,
+    flexShrink: 1,
+    lineHeight: 24,
   },
   matchBadge: {
     borderRadius: radius.pill,

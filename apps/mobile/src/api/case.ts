@@ -34,6 +34,7 @@ type RxCaseRow = {
     match_status?: 'matched' | 'unmatched' | null;
     confidence?: number | null;
     ingredient_id?: string | null;
+    ingredient_ids?: string[] | null;
     match_method?: 'canonical_exact' | 'alias_exact' | 'paren_alias_exact' | null;
     nhi_code?: string | null;
     note?: string | null;
@@ -49,6 +50,7 @@ type RxMedicationLineMatchRow = {
   normalized_text: string;
   match_status: 'matched' | 'unmatched';
   ingredient_id: string | null;
+  ingredient_ids: string[] | null;
   ingredient_canonical_name: string | null;
   match_method: 'canonical_exact' | 'alias_exact' | 'paren_alias_exact' | 'ingredient_token' | null;
   confidence: number | null;
@@ -73,6 +75,7 @@ function mapDetectedItemsFromDb(items: RxCaseRow['detected_items']): DetectedIte
     confidence: item.confidence ?? null,
     displayName: item.display_name ?? '',
     ingredientId: item.ingredient_id ?? undefined,
+    ingredientIds: item.ingredient_ids ?? undefined,
     matchMethod: item.match_method ?? null,
     matchStatus: item.match_status === 'matched' ? 'matched' : 'unmatched',
     nhiCode: item.nhi_code ?? undefined,
@@ -202,11 +205,17 @@ function mapMedicationMatchesToDetectedItems(
     const m = rowsByIndex.get(i);
     if (m?.match_status === 'matched' && m.ingredient_id) {
       ingredientIds.add(m.ingredient_id);
+      if (m.ingredient_ids) {
+        for (const id of m.ingredient_ids) {
+          ingredientIds.add(id);
+        }
+      }
       if (!matchedById.has(m.ingredient_id)) {
         matchedById.set(m.ingredient_id, {
           confidence: m.confidence ?? null,
           display_name: m.ingredient_canonical_name ?? m.input_text ?? line,
           ingredient_id: m.ingredient_id,
+          ingredient_ids: m.ingredient_ids ?? (m.ingredient_id ? [m.ingredient_id] : null),
           match_method: m.match_method ?? null,
           match_status: 'matched',
           nhi_code: null,

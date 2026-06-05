@@ -168,6 +168,7 @@ describe('createCase', () => {
           confidence: 0.9,
           display_name: 'TIOTROPIUM',
           ingredient_id: 'ingredient-tiotropium',
+          ingredient_ids: ['ingredient-tiotropium'],
           match_method: 'paren_alias_exact',
           match_status: 'matched',
           nhi_code: null,
