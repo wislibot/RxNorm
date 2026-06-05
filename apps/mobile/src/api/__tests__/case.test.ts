@@ -904,6 +904,96 @@ describe('createCase', () => {
     expect(insertArg.ingredient_ids).toEqual(['ing-tiotropium']);
   });
 
+  test('combo drug: matched with null ingredient_id but non-null ingredient_ids yields matched card', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      arrayBuffer: jest.fn().mockResolvedValue(new ArrayBuffer(8)),
+      headers: { get: jest.fn().mockReturnValue('image/jpeg') },
+    }) as unknown as typeof fetch;
+
+    mockCreateUploadImage.mockResolvedValue({ uri: 'processed://upload.jpg', mimeType: 'image/jpeg' });
+    mockCreateThumbnailImage.mockResolvedValue({ uri: 'processed://thumb.jpg', mimeType: 'image/jpeg' });
+
+    const single = jest.fn().mockResolvedValue({ data: { case_id: 'case-trajenta' }, error: null });
+    const select = jest.fn().mockReturnValue({ single });
+    const insert = jest.fn().mockReturnValue({ select });
+    const eq = jest.fn().mockResolvedValue({ error: null });
+    const update = jest.fn().mockReturnValue({ eq });
+    const from = jest.fn().mockReturnValue({ insert, update });
+
+    const upload = jest.fn().mockResolvedValue({ data: null, error: null });
+    const storageFrom = jest.fn().mockReturnValue({ upload });
+    const rpc = jest.fn().mockImplementation((fnName: string) => {
+      if (fnName === 'rx_match_medication_lines') {
+        return Promise.resolve({
+          data: [
+            {
+              confidence: 0.65, ingredient_canonical_name: 'LINAGLIPTIN',
+              ingredient_id: null, input_index: 0,
+              input_text: 'Trajenta DUO 2.5 & 850mg/膜衣錠 (Linagliptin & Metformin)',
+              match_method: 'ingredient_token',
+              match_status: 'matched', normalized_text: 'TRAJENTA DUO LINAGLIPTIN METFORMIN',
+              ingredient_ids: ['ing-linagliptin', 'ing-metformin'],
+            },
+          ],
+          error: null,
+        });
+      }
+      if (fnName === 'rx_match_brand_lines') {
+        return Promise.resolve({ data: [], error: null });
+      }
+      return Promise.resolve({ data: [], error: null });
+    });
+
+    const client = {
+      auth: { getUser: jest.fn().mockResolvedValue({ data: { user: { id: 'user-traj' } }, error: null }) },
+      from, rpc, storage: { from: storageFrom },
+    } as never;
+
+    await createCase({
+      caseType: 'medicine_bag', ingredientIds: [],
+      ocrRawText: 'Trajenta DUO 2.5 & 850mg/膜衣錠\nLinagliptin & Metformin',
+      photoUris: ['file://photo-1.jpg'],
+      sectionedOcr: {
+        sections: {
+          medication: {
+            lines: [
+              { text: 'Trajenta DUO 2.5 & 850mg/膜衣錠 (Linagliptin & Metformin)', frame: { x: 120, y: 42, width: 300, height: 16 } },
+            ],
+            texts: ['Trajenta DUO 2.5 & 850mg/膜衣錠 (Linagliptin & Metformin)'],
+          },
+          instruction: { lines: [], texts: [] },
+          indications: { lines: [], texts: [] },
+          warnings: { lines: [], texts: [] },
+          side_effects: { lines: [], texts: [] },
+          prescription_no: { lines: [], texts: [] },
+          dispensing_date: { lines: [], texts: [] },
+          quantity: { lines: [], texts: [] },
+          pharmacist: { lines: [], texts: [] },
+          unassigned: { lines: [], texts: [] },
+        },
+        modelData: {
+          engine: 'paddleocr-ppstructurev3', version: 'v1', pages: [],
+          case_fields: {
+            patientName: null, patientSex: null, prescriptionNo: null,
+            medicationName: 'Trajenta DUO', quantity: null,
+            directions: null, indications: null, warnings: null,
+            sideEffects: null, appearance: null, pharmacyName: null,
+            pharmacyAddress: null, pharmacistName: null, physicianName: null,
+            dispensingDate: null, useBefore: null,
+          },
+          extraction_engine: 'llm', extraction_fallback: false,
+        },
+      },
+    }, client);
+
+    const insertArg = insert.mock.calls[0][0];
+    expect(insertArg.detected_items).toHaveLength(1);
+    expect(insertArg.detected_items[0].match_status).toBe('matched');
+    expect(insertArg.detected_items[0].ingredient_id).toBe('ing-linagliptin');
+    expect(insertArg.detected_items[0].ingredient_ids).toEqual(['ing-linagliptin', 'ing-metformin']);
+    expect(insertArg.ingredient_ids).toEqual(expect.arrayContaining(['ing-linagliptin', 'ing-metformin']));
+  });
+
   test('recall preserved: section-only ingredient still yields matched card', async () => {
     global.fetch = jest.fn().mockResolvedValue({
       arrayBuffer: jest.fn().mockResolvedValue(new ArrayBuffer(8)),

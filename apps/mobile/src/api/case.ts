@@ -208,19 +208,22 @@ function mapMedicationMatchesToDetectedItems(
 
   candidateLines.forEach((line, i) => {
     const m = rowsByIndex.get(i);
-    if (m?.match_status === 'matched' && m.ingredient_id) {
-      ingredientIds.add(m.ingredient_id);
+    const hasIngredientIds = (m?.ingredient_ids?.length ?? 0) > 0;
+    if (m?.match_status === 'matched' && (m.ingredient_id || hasIngredientIds)) {
+      const effectiveId = m.ingredient_id ?? (m.ingredient_ids && m.ingredient_ids.length > 0 ? m.ingredient_ids[0] : null);
+      if (!effectiveId) return;
+      ingredientIds.add(effectiveId);
       if (m.ingredient_ids) {
         for (const id of m.ingredient_ids) {
           ingredientIds.add(id);
         }
       }
-      if (!matchedById.has(m.ingredient_id)) {
-        matchedById.set(m.ingredient_id, {
+      if (!matchedById.has(effectiveId)) {
+        matchedById.set(effectiveId, {
           confidence: m.confidence ?? null,
           display_name: m.ingredient_canonical_name ?? m.input_text ?? line,
-          ingredient_id: m.ingredient_id,
-          ingredient_ids: m.ingredient_ids ?? (m.ingredient_id ? [m.ingredient_id] : null),
+          ingredient_id: effectiveId,
+          ingredient_ids: m.ingredient_ids ?? (effectiveId ? [effectiveId] : null),
           match_method: m.match_method ?? null,
           match_status: 'matched',
           nhi_code: null,
