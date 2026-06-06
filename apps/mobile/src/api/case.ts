@@ -52,7 +52,9 @@ type RxMedicationLineMatchRow = {
   ingredient_id: string | null;
   ingredient_ids: string[] | null;
   ingredient_canonical_name: string | null;
-  match_method: 'canonical_exact' | 'alias_exact' | 'paren_alias_exact' | 'ingredient_token' | null;
+  product_id: string | null;
+  product_display_name: string | null;
+  match_method: 'canonical_exact' | 'alias_exact' | 'paren_alias_exact' | 'ingredient_token' | 'ocr_product' | 'product_exact' | 'product_token' | null;
   confidence: number | null;
 };
 
@@ -224,12 +226,12 @@ function mapMedicationMatchesToDetectedItems(
       if (!matchedById.has(effectiveId)) {
         matchedById.set(effectiveId, {
           confidence: m.confidence ?? null,
-          display_name: m.ingredient_canonical_name ?? m.input_text ?? line,
+          display_name: m.product_display_name ?? m.ingredient_canonical_name ?? m.input_text ?? line,
           ingredient_id: effectiveId,
           ingredient_ids: m.ingredient_ids ?? (effectiveId ? [effectiveId] : null),
           match_method: m.match_method ?? null,
           match_status: 'matched',
-          nhi_code: null,
+          nhi_code: m.product_id ?? null,
           note: null,
           raw_text: m.input_text ?? line,
           source: 'ocr_line',
