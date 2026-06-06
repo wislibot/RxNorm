@@ -38,6 +38,18 @@ describe('createCase', () => {
     const eq = jest.fn().mockResolvedValue({ error: null });
     const update = jest.fn().mockReturnValue({ eq });
     const from = jest.fn().mockImplementation((table: string) => {
+      if (table === 'rx_product_ingredients') {
+        return {
+          select: jest.fn().mockReturnValue({
+            in: jest.fn().mockResolvedValue({
+              data: [
+                { nhi_code: 'B025033161', ingredient_id: 'ingredient-tiotropium' },
+              ],
+              error: null,
+            }),
+          }),
+        };
+      }
       if (table !== 'rx_cases') {
         throw new Error(`Unexpected table ${table}`);
       }

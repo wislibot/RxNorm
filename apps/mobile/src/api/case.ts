@@ -193,6 +193,8 @@ function mapMedicationMatchesToDetectedItems(
   candidateLines: string[],
   matchRows: RxMedicationLineMatchRow[] | null | undefined,
   medicationName?: string,
+  brandRows?: RxBrandLineMatchRow[],
+  brandIngredientMap?: Map<string, string[]>,
 ): { detectedItems: Array<Record<string, unknown>>; ingredientIds: string[] } {
   if (!candidateLines.length) {
     return { detectedItems: [], ingredientIds: [] };
@@ -243,21 +245,51 @@ function mapMedicationMatchesToDetectedItems(
   // card so the user sees something for the medication. The only things fully
   // suppressed are unmatched fragment/label lines when at least one match exists.
   if (detectedItems.length === 0) {
-    const fallbackText = (medicationName ?? '').trim()
-      || [...candidateLines].sort((a, b) => b.length - a.length)[0]
-      || '';
-    if (fallbackText) {
-      detectedItems = [{
-        confidence: null,
-        display_name: fallbackText,
-        ingredient_id: null,
-        match_method: null,
-        match_status: 'unmatched',
-        nhi_code: null,
-        note: null,
-        raw_text: fallbackText,
-        source: 'ocr_line',
-      }];
+    const matchedBrands = (brandRows ?? []).filter(
+      (row) => row.match_status === 'matched' && row.product_id,
+    );
+
+    if (matchedBrands.length > 0 && brandIngredientMap && brandIngredientMap.size > 0) {
+      const seenIngredients = new Set<string>();
+      for (const row of matchedBrands) {
+        const brandIngIds = brandIngredientMap.get(row.product_id!) ?? [];
+        for (const ingId of brandIngIds) {
+          if (seenIngredients.has(ingId)) continue;
+          seenIngredients.add(ingId);
+          ingredientIds.add(ingId);
+          detectedItems.push({
+            confidence: row.confidence ?? null,
+            display_name: row.product_display_name ?? row.input_text,
+            ingredient_id: ingId,
+            ingredient_ids: brandIngIds,
+            match_method: row.match_method ?? null,
+            match_status: 'matched',
+            nhi_code: row.product_id ?? null,
+            note: null,
+            raw_text: row.input_text,
+            source: 'ocr_line',
+          });
+        }
+      }
+    }
+
+    if (detectedItems.length === 0) {
+      const fallbackText = (medicationName ?? '').trim()
+        || [...candidateLines].sort((a, b) => b.length - a.length)[0]
+        || '';
+      if (fallbackText) {
+        detectedItems = [{
+          confidence: null,
+          display_name: fallbackText,
+          ingredient_id: null,
+          match_method: null,
+          match_status: 'unmatched',
+          nhi_code: null,
+          note: null,
+          raw_text: fallbackText,
+          source: 'ocr_line',
+        }];
+      }
     }
   }
 
@@ -297,6 +329,27 @@ export async function createCase(input: CreateCaseInput, client: AppSupabaseClie
   }
 
   const brandRows = (brandResult.data ?? []) as RxBrandLineMatchRow[];
+
+  const matchedProductIds = brandRows
+    .filter((row) => row.match_status === 'matched' && row.product_id)
+    .map((row) => row.product_id!);
+  const uniqueProductIds = Array.from(new Set(matchedProductIds));
+
+  let brandIngredientMap = new Map<string, string[]>();
+  if (uniqueProductIds.length > 0) {
+    const { data: piRows } = await client
+      .from('rx_product_ingredients')
+      .select('nhi_code, ingredient_id')
+      .in('nhi_code', uniqueProductIds);
+    if (piRows) {
+      for (const row of piRows as Array<{ nhi_code: string; ingredient_id: string }>) {
+        const existing = brandIngredientMap.get(row.nhi_code) ?? [];
+        existing.push(row.ingredient_id);
+        brandIngredientMap.set(row.nhi_code, existing);
+      }
+    }
+  }
+
   const brandMatches = brandRows
     .filter((row) => row.match_status === 'matched')
     .map((row) => ({
@@ -329,6 +382,8 @@ export async function createCase(input: CreateCaseInput, client: AppSupabaseClie
     medicationLines,
     (matchedRows ?? []) as RxMedicationLineMatchRow[],
     medicationName,
+    brandRows,
+    brandIngredientMap,
   );
   const uniqueIngredientIds = Array.from(new Set(ingredientIds));
 
