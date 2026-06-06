@@ -152,6 +152,15 @@ function getMedicationCandidateLines(input: CreateCaseInput) {
     sectionLines.unshift(llmMedicationName);
   }
 
+  // Ensure OCR medication section lines are always included
+  const ocrMedLines = input.sectionedOcr?.sections?.medication?.texts ?? [];
+  for (const ocrLine of ocrMedLines) {
+    const trimmed = ocrLine.trim();
+    if (trimmed && !sectionLines.includes(trimmed)) {
+      sectionLines.push(trimmed);
+    }
+  }
+
   return sectionLines;
 }
 
