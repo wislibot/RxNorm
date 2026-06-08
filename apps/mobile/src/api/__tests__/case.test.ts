@@ -168,10 +168,10 @@ describe('createCase', () => {
 
     expect(result).toEqual({ caseId: 'case-123' });
     expect(rpc).toHaveBeenCalledWith('rx_match_medication_lines', {
-      medication_lines: ['Spiriva Respimat 2 puff (tiotropium)', 'Tiotropium'],
+      medication_lines: ['Spiriva Respimat 2 puff (tiotropium)', 'Tiotropium', 'Spiriva Respimat', '2 paff (tiotropium)'],
     });
     expect(rpc).toHaveBeenCalledWith('rx_match_brand_lines', {
-      brand_lines: ['Spiriva Respimat 2 puff (tiotropium)', 'Tiotropium'],
+      brand_lines: ['Spiriva Respimat 2 puff (tiotropium)', 'Tiotropium', 'Spiriva Respimat', '2 paff (tiotropium)'],
     });
     expect(insert).toHaveBeenCalledWith({
       case_type: 'medicine_bag',

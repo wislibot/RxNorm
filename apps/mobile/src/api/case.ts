@@ -140,6 +140,29 @@ function getMedicationCandidateLines(input: CreateCaseInput) {
     const raw = input.sectionedOcr?.sections.medication.texts ?? [];
     sectionLines = raw.map((line) => line.trim()).filter(Boolean);
     if (!sectionLines.length) {
+      const llmOtherLines = (input.sectionedOcr?.modelData?.case_fields as any)?.other ?? [];
+      if (llmOtherLines.length > 0) {
+        const NON_MED_KEYWORDS = [
+          '適應症', '适应症', '警語', '警语', '成份名', '代收',
+          '就醫', '就医', '日份', '合計', '合计', '調劑', '调剂',
+          '藥師', '药师', '兹收到', '茲收到', '性別', '性别', '姓名',
+          '病號', '病号', '身分證', '身份证', '就醫序', '就医序',
+          'N處方', 'N处方', '次量',
+        ];
+        sectionLines = llmOtherLines
+          .filter((line: string) => {
+            const trimmed = line.trim();
+            if (!trimmed || trimmed.length >= 60) return false;
+            if (NON_MED_KEYWORDS.some((kw) => trimmed.startsWith(kw))) return false;
+            if (/[A-Za-z]{4,}/.test(trimmed)) return true;
+            if (/\d+\s*(?:mg|mcg|g|ml|iu|cap|tab|inj|syr)/i.test(trimmed)) return true;
+            return false;
+          })
+          .map((line: string) => line.replace(/\|/g, ' ').trim())
+          .filter(Boolean);
+      }
+    }
+    if (!sectionLines.length) {
       sectionLines = extractDetectedItems({
         ocrRawText: input.ocrRawText,
         sectionedOcr: input.sectionedOcr,

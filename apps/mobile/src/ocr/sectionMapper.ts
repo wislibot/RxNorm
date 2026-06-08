@@ -50,7 +50,7 @@ const INLINE_MEDICATION_HEADER_ZH_RE = /^藥名/;
 const MEDICINE_SIGNAL_RE = /\b\d+(?:\.\d+)?\s*(mcg|mg|g|ml|iu|%)\b|\b(puff|puffs|bot|bottle)\b|\([^)]*[A-Za-z][^)]*\)/i;
 
 const ANCHORS: AnchorDefinition[] = [
-  { key: 'medication', keywords: ['藥名', 'medication'] },
+  { key: 'medication', keywords: ['藥名', 'medication', '處方', '次量'] },
   { key: 'instruction', keywords: ['用法', 'instruction'] },
   { key: 'indications', keywords: ['用途', 'indications'] },
   { key: 'warnings', keywords: ['警語', 'warnings'] },
@@ -104,7 +104,10 @@ function detectAnchors(lines: OcrLine[]): AnchorMatch[] {
         anchor.keywords.some((keyword) => {
           const normalizedKw = keyword.toLowerCase();
           if (text === normalizedKw) return true;
-          if (text.startsWith(normalizedKw) && text.length <= normalizedKw.length + 4) return true;
+          if (text.includes(normalizedKw)) {
+            if (anchor.key !== 'medication' && MEDICINE_SIGNAL_RE.test(text)) return false;
+            return true;
+          }
           return false;
         }),
       );
