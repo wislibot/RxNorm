@@ -841,6 +841,7 @@ describe('runOcrOnImagesStructured multi-photo routing', () => {
     // Each photo gets its own /parse call via uploadAsync
     expect(mockFileSystem.uploadAsync).toHaveBeenCalledTimes(2);
     expect(result.text).toBeTruthy();
+    expect(result.perPhoto).toHaveLength(2);
   });
 
   test('still uses individual /parse endpoint for single photo', async () => {
@@ -857,9 +858,10 @@ describe('runOcrOnImagesStructured multi-photo routing', () => {
 
     const { runOcrOnImagesStructured } = loadOcrModule('android');
 
-    await runOcrOnImagesStructured(['file://photo-1.jpg']);
+    const result = await runOcrOnImagesStructured(['file://photo-1.jpg']);
 
     expect(mockFileSystem.uploadAsync).toHaveBeenCalledTimes(1);
+    expect(result.perPhoto).toHaveLength(1);
   });
 });
 

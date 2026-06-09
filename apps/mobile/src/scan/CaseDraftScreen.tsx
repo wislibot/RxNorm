@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { createCase } from '../api/case';
 import { mapOcrSections, type SectionedOcr } from '../ocr/sectionMapper';
 import { isOcrUnavailableError, runOcrOnImagesStructured } from '../ocr/ocr';
+import type { OcrResult } from '../ocr/types';
 import { colors, radius, spacing, typography } from '../theme/tokens';
 import type { ScanStackParamList } from './types';
 
@@ -20,6 +21,7 @@ export function CaseDraftScreen({ navigation, route }: Props) {
   const [friendlyMessage, setFriendlyMessage] = useState('');
   const [isSavingCase, setIsSavingCase] = useState(false);
   const [sectionedOcr, setSectionedOcr] = useState<SectionedOcr | undefined>(undefined);
+  const [perPhotoOcrResults, setPerPhotoOcrResults] = useState<OcrResult[] | undefined>(undefined);
   const ocrInFlight = useRef(false);
 
   const photoUris = useMemo(() => photos.map((photo) => photo.uri), [photos]);
@@ -49,6 +51,7 @@ export function CaseDraftScreen({ navigation, route }: Props) {
       const structured = await runOcrOnImagesStructured(photoUris);
       setRawText(structured.text);
       setSectionedOcr(structured.blocks.length > 0 ? mapOcrSections(structured) : undefined);
+      setPerPhotoOcrResults(structured.perPhoto);
       setOcrAttempted(true);
       if (!structured.text.trim()) {
         setFriendlyMessage(t('ocrFriendlyError'));
@@ -80,6 +83,7 @@ export function CaseDraftScreen({ navigation, route }: Props) {
         ocrRawText: rawText,
         photoUris,
         sectionedOcr,
+        perPhotoOcrResults,
       });
 
       navigation.navigate('CasePage', { caseId });

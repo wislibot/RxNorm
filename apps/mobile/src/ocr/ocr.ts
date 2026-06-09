@@ -297,10 +297,10 @@ export async function runOcrOnImages(uris: string[]): Promise<string> {
     .trim();
 }
 
-export async function runOcrOnImagesStructured(uris: string[]): Promise<OcrResult> {
-  if (!uris.length) return { text: '', blocks: [] };
+export async function runOcrOnImagesStructured(uris: string[]): Promise<OcrResult & { perPhoto: OcrResult[] }> {
+  if (!uris.length) return { text: '', blocks: [], perPhoto: [] };
 
-  if (Platform.OS === 'web') return __DEV__ ? DEMO_WEB_STRUCTURED_OCR : { text: '', blocks: [] };
+  if (Platform.OS === 'web') return { ...(__DEV__ ? DEMO_WEB_STRUCTURED_OCR : { text: '', blocks: [] }), perPhoto: [] };
 
   requireOcrServerConfig();
 
@@ -322,5 +322,5 @@ export async function runOcrOnImagesStructured(uris: string[]): Promise<OcrResul
     };
   }
 
-  return { text, blocks, ...(modelData ? { modelData } : {}) };
+  return { text, blocks, ...(modelData ? { modelData } : {}), perPhoto: results };
 }

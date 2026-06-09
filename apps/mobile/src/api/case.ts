@@ -528,8 +528,8 @@ async function createMultiPhotoCases(
   const caseGroupId = Date.now().toString(36) + Math.random().toString(36).slice(2);
   let firstCaseId: string | null = null;
 
-  for (const photoUri of input.photoUris) {
-    const ocrResult = await runRemoteOcrImage(photoUri);
+  for (const [i, photoUri] of input.photoUris.entries()) {
+    const ocrResult = input.perPhotoOcrResults?.[i] ?? await runRemoteOcrImage(photoUri);
     const sections = mapOcrSections(ocrResult);
 
     const photoInput: CreateCaseInput = {

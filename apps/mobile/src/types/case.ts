@@ -1,3 +1,4 @@
+import type { OcrResult } from '../ocr/types';
 import type { SectionedOcr } from '../ocr/sectionMapper';
 import type { RemoteOcrResult } from '../ocr/types';
 import type { CaseFields } from './caseFields';
@@ -29,6 +30,7 @@ export type CreateCaseInput = {
   ingredientIds: string[];
   sectionedOcr?: SectionedOcr;
   caseGroupId?: string;
+  perPhotoOcrResults?: OcrResult[];
 };
 
 export type OcrSections = {
