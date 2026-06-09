@@ -304,5 +304,23 @@ export async function runOcrOnImagesStructured(uris: string[]): Promise<OcrResul
 
   requireOcrServerConfig();
 
-  return await runRemoteOcrImage(uris[0]!);
+  const results = await Promise.all(uris.map(runRemoteOcrImage));
+
+  const text = results.map((r) => r.text).filter(Boolean).join('\n\n');
+  const blocks = results.flatMap((r) => r.blocks);
+
+  const modelDatas = results
+    .map((r) => r.modelData)
+    .filter((m): m is RemoteOcrResult => m !== undefined);
+
+  let modelData: RemoteOcrResult | undefined;
+  if (modelDatas.length > 0) {
+    modelData = {
+      ...modelDatas[0],
+      pages: modelDatas.flatMap((m) => m.pages),
+      case_fields: modelDatas.find((m) => m.case_fields !== null)?.case_fields ?? null,
+    };
+  }
+
+  return { text, blocks, ...(modelData ? { modelData } : {}) };
 }
