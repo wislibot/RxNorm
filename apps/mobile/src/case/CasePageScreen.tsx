@@ -194,37 +194,43 @@ export function CasePageScreen({ route }: Props) {
     ddiResult?.interactions_found_count === 0 && !shouldShowCoverageGap;
   const createdAtLabel = caseRecord ? new Date(caseRecord.createdAt).toLocaleString() : t('casePageCreatedPlaceholder');
 
-  const renderInteractionCard = (interaction: CaseDdiInteraction) => (
-    <View key={`${interaction.ingredient_a_id}-${interaction.ingredient_b_id}`} style={styles.interactionCard}>
-      <View style={styles.cardHeaderRow}>
-        <Text style={styles.itemTitle}>{interaction.patient_title_en}</Text>
-        <View
-          style={[
-            styles.severityBadge,
-            interaction.severity === 'major'
-              ? styles.majorBadge
-              : interaction.severity === 'moderate'
-                ? styles.moderateBadge
-                : styles.minorBadge,
-          ]}
-        >
-          <Text
+  const renderInteractionCard = (interaction: CaseDdiInteraction) => {
+    const aName = ingredientNameMap.get(interaction.ingredient_a_id) ?? interaction.ingredient_a_id;
+    const bName = ingredientNameMap.get(interaction.ingredient_b_id) ?? interaction.ingredient_b_id;
+
+    return (
+      <View key={`${interaction.ingredient_a_id}-${interaction.ingredient_b_id}`} style={styles.interactionCard}>
+        <View style={styles.cardHeaderRow}>
+          <Text style={styles.itemTitle}>{interaction.patient_title_en}</Text>
+          <View
             style={[
-              styles.severityBadgeText,
+              styles.severityBadge,
               interaction.severity === 'major'
-                ? styles.majorBadgeText
+                ? styles.majorBadge
                 : interaction.severity === 'moderate'
-                  ? styles.moderateBadgeText
-                  : styles.minorBadgeText,
+                  ? styles.moderateBadge
+                  : styles.minorBadge,
             ]}
           >
-            {t(`casePageSeverity.${interaction.severity}`)}
-          </Text>
+            <Text
+              style={[
+                styles.severityBadgeText,
+                interaction.severity === 'major'
+                  ? styles.majorBadgeText
+                  : interaction.severity === 'moderate'
+                    ? styles.moderateBadgeText
+                    : styles.minorBadgeText,
+              ]}
+            >
+              {t(`casePageSeverity.${interaction.severity}`)}
+            </Text>
+          </View>
         </View>
+        <Text style={styles.ingredientPairText}>{`${aName} ↔ ${bName}`}</Text>
+        <Text style={styles.body}>{interaction.patient_message_en}</Text>
       </View>
-      <Text style={styles.body}>{interaction.patient_message_en}</Text>
-    </View>
-  );
+    );
+  };
 
   function filterInstructionLines(lines: string[]): string[] {
     const headers = new Set(
@@ -710,6 +716,12 @@ const styles = StyleSheet.create({
     backgroundColor: colors.warningBackground,
     borderRadius: radius.md,
     padding: spacing.md,
+  },
+  ingredientPairText: {
+    color: colors.text,
+    fontSize: typography.body,
+    fontWeight: '700',
+    lineHeight: 26,
   },
   interactionCard: {
     backgroundColor: colors.background,
