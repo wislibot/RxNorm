@@ -172,6 +172,28 @@ function getMedicationCandidateLines(input: CreateCaseInput) {
           .map((line: string) => line.replace(/\|/g, ' ').trim())
           .filter(Boolean);
       }
+
+      // When LLM "other" lines are sparse (< 3 med-like lines), also scan raw OCR
+      // page elements for medication-like text. This catches medication lines from
+      // multi-photo merges that the LLM didn't include in case_fields.other.
+      if (sectionLines.length < 3) {
+        const rawElements =
+          input.sectionedOcr?.modelData?.pages?.flatMap((p) => p.elements) ?? [];
+        const elementTexts = rawElements
+          .map((e) => e.text.trim())
+          .filter((t) => {
+            if (!t || t.length >= 60) return false;
+            if (NON_MED_KEYWORDS.some((kw) => t.startsWith(kw))) return false;
+            if (/[A-Za-z]{4,}/.test(t)) return true;
+            if (/\d+\s*(?:mg|mcg|g|ml|iu|cap|tab|inj|syr)/i.test(t)) return true;
+            return false;
+          });
+        for (const text of elementTexts) {
+          if (!sectionLines.includes(text)) {
+            sectionLines.push(text);
+          }
+        }
+      }
     }
     if (!sectionLines.length) {
       sectionLines = extractDetectedItems({
