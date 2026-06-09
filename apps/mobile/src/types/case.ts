@@ -28,6 +28,7 @@ export type CreateCaseInput = {
   ocrRawText: string;
   ingredientIds: string[];
   sectionedOcr?: SectionedOcr;
+  caseGroupId?: string;
 };
 
 export type OcrSections = {
@@ -41,11 +42,6 @@ export type OcrSections = {
   pharmacistLines: string[];
   caseFields?: CaseFields | null;
   remoteModel?: RemoteOcrResult | null;
-  photoCount?: number;
-  photoAttributions?: Array<{
-    photoIndex: number;
-    sections: Record<string, { lineCount: number; texts: string[] }>;
-  }>;
 };
 
 export type CaseRecord = {
@@ -61,6 +57,7 @@ export type CaseRecord = {
   thumbUrls: string[];
   ingredientIds: string[];
   shareToAllCareTeams: boolean;
+  caseGroupId?: string;
 };
 
 export type CaseSummary = {

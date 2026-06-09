@@ -162,7 +162,6 @@ export function mapRemoteToOcrResult(remote: RemoteOcrResult): OcrResult {
           width: Math.max(1, x2 - x1),
           height: Math.max(1, y2 - y1),
         },
-        photoIndex: element.photo_index ?? 0,
       });
     }
   }
@@ -174,7 +173,6 @@ export function mapRemoteToOcrResult(remote: RemoteOcrResult): OcrResult {
     text: line.text,
     frame: line.frame,
     lines: [line],
-    photoIndex: line.photoIndex,
   }));
 
   const text = blocks.map((block) => block.text).join('\n');
@@ -284,75 +282,6 @@ function requireOcrServerConfig(): void {
   }
 }
 
-async function ensureLocalFile(uri: string): Promise<{ fileUri: string; tmpPath: string | null }> {
-  if (!uri.startsWith('content://')) {
-    return { fileUri: uri, tmpPath: null };
-  }
-
-  const tmpPath = FileSystem.cacheDirectory + 'ocr_upload_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8) + '.jpg';
-  await FileSystem.copyAsync({ from: uri, to: tmpPath });
-  return { fileUri: tmpPath, tmpPath };
-}
-
-export async function runRemoteOcrImageMulti(uris: string[]): Promise<OcrResult> {
-  if (__DEV__) {
-    console.log('[OCR] parse-multi', `${OCR_SERVER_URL}/parse-multi?lang=ch`, 'photos:', uris.length);
-  }
-
-  const uploadUrl = `${OCR_SERVER_URL}/parse-multi?lang=ch`;
-  const tmpFiles: string[] = [];
-
-  try {
-    const formData = new FormData();
-
-    for (let i = 0; i < uris.length; i++) {
-      const { fileUri, tmpPath } = await ensureLocalFile(uris[i]);
-      if (tmpPath) tmpFiles.push(tmpPath);
-
-      formData.append('files', {
-        uri: fileUri,
-        type: 'image/jpeg',
-        name: `photo_${i}.jpg`,
-      } as any);
-    }
-
-    const response = await fetch(uploadUrl, {
-      method: 'POST',
-      body: formData,
-      headers: {
-        'X-API-Key': OCR_SERVER_API_KEY,
-        'Content-Type': 'multipart/form-data',
-      },
-    });
-
-    if (response.status === 401) {
-      throw new OcrUnavailableError('OCR server unavailable');
-    }
-
-    if (!response.ok) {
-      throw new OcrUnavailableError('OCR server unavailable');
-    }
-
-    const remoteResult = (await response.json()) as RemoteOcrResult;
-
-    if (!remoteResult.pages || remoteResult.pages.length === 0) {
-      return { text: '', blocks: [], modelData: remoteResult };
-    }
-
-    return mapRemoteToOcrResult(remoteResult);
-  } catch (error) {
-    if (__DEV__) console.log('[OCR] parse-multi error', error);
-    if (error instanceof OcrUnavailableError) {
-      throw error;
-    }
-    throw new OcrUnavailableError('OCR server unavailable');
-  } finally {
-    for (const tmpPath of tmpFiles) {
-      FileSystem.deleteAsync(tmpPath, { idempotent: true }).catch(() => {});
-    }
-  }
-}
-
 export async function runOcrOnImages(uris: string[]): Promise<string> {
   if (!uris.length) return '';
 
@@ -374,12 +303,6 @@ export async function runOcrOnImagesStructured(uris: string[]): Promise<OcrResul
   if (Platform.OS === 'web') return __DEV__ ? DEMO_WEB_STRUCTURED_OCR : { text: '', blocks: [] };
 
   requireOcrServerConfig();
-
-  // For multiple photos, use the combined /parse-multi endpoint
-  // so the LLM sees all photos' text in a single extraction.
-  if (uris.length > 1) {
-    return runRemoteOcrImageMulti(uris);
-  }
 
   const results = await Promise.all(uris.map(runRemoteOcrImage));
 

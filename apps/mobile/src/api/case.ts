@@ -3,9 +3,11 @@ import { extractDetectedItems } from '../detectedItems/extractDetectedItems';
 import { analyzeMedicationLineGrouping, groupMedicationLinesIntoItems } from '../ocr/groupMedicationLines';
 import { createUploadImage, createThumbnailImage } from '../photos/processPhoto';
 import { extractCaseFields } from '../ocr/structuredCaseExtractor';
-import { mapRemoteCaseFields } from '../ocr/ocr';
+import { mapRemoteCaseFields, runRemoteOcrImage } from '../ocr/ocr';
+import { mapOcrSections } from '../ocr/sectionMapper';
 import type { BrandMatch, CaseFields } from '../types/caseFields';
 import type { AutoShareStatus, CaseRecord, CaseSummary, CreateCaseInput, DetectedItem, OcrSections } from '../types/case';
+import type { RemoteOcrResult } from '../ocr/types';
 
 const CASE_PHOTO_BUCKET = 'rx-case-photos';
 const SIGNED_URL_EXPIRY_SECONDS = 60 * 60 * 24;
@@ -16,6 +18,7 @@ type RxCaseRow = {
   created_at: string;
   updated_at: string;
   ocr_raw_text: string;
+  case_group_id: string | null;
   ocr_sections: {
     medication_lines?: string[] | null;
     instruction_lines?: string[] | null;
@@ -27,8 +30,6 @@ type RxCaseRow = {
     pharmacist_lines?: string[] | null;
     case_fields?: CaseFields | null;
     remote_model?: unknown;
-    photo_count?: number;
-    photo_attributions?: Array<{ photoIndex: number; sections: Record<string, { lineCount: number; texts: string[] }> }>;
   } | null;
   detected_items: Array<{
     source?: 'ocr_line';
@@ -223,13 +224,6 @@ function buildStoredOcrSections(
     caseFields.brandMatches = brandMatches;
   }
 
-  const photoAttributions = input.sectionedOcr?.photoAttributions
-    ? input.sectionedOcr.photoAttributions.map((attr) => ({
-        photoIndex: attr.photoIndex,
-        sections: attr.sections as Record<string, { lineCount: number; texts: string[] }>,
-      }))
-    : undefined;
-
   return {
     medicationLines: sections?.medication.texts ?? [],
     instructionLines: sections?.instruction.texts ?? [],
@@ -241,8 +235,6 @@ function buildStoredOcrSections(
     pharmacistLines: sections?.pharmacist.texts ?? [],
     caseFields,
     remoteModel: input.sectionedOcr?.modelData ?? null,
-    photoCount: input.photoUris.length,
-    photoAttributions,
   };
 }
 
@@ -356,8 +348,11 @@ function mapMedicationMatchesToDetectedItems(
   };
 }
 
-export async function createCase(input: CreateCaseInput, client: AppSupabaseClient = getSupabaseClient()) {
-  const userId = await requireCurrentUserId(client);
+async function createSingleCase(
+  input: CreateCaseInput,
+  userId: string,
+  client: AppSupabaseClient,
+): Promise<{ caseId: string }> {
   const medicationLines = getMedicationCandidateLines(input);
 
   const remoteCaseFields = mapRemoteCaseFields(
@@ -444,29 +439,35 @@ export async function createCase(input: CreateCaseInput, client: AppSupabaseClie
   );
   const uniqueIngredientIds = Array.from(new Set(ingredientIds));
 
+  const insertPayload: Record<string, unknown> = {
+    case_type: input.caseType,
+    detected_items: detectedItems,
+    ingredient_ids: uniqueIngredientIds,
+    ocr_raw_text: input.ocrRawText,
+    ocr_sections: {
+      medication_lines: finalOcrSections.medicationLines,
+      instruction_lines: finalOcrSections.instructionLines,
+      indications_lines: finalOcrSections.indicationsLines,
+      warnings_lines: finalOcrSections.warningsLines,
+      side_effects_lines: finalOcrSections.sideEffectsLines,
+      dispensing_date_lines: finalOcrSections.dispensingDateLines,
+      quantity_lines: finalOcrSections.quantityLines,
+      pharmacist_lines: finalOcrSections.pharmacistLines,
+      case_fields: finalOcrSections.caseFields,
+      remote_model: finalOcrSections.remoteModel ?? null,
+    },
+    photo_paths: [],
+    share_to_all_care_teams: true,
+    user_id: userId,
+  };
+
+  if (input.caseGroupId) {
+    insertPayload.case_group_id = input.caseGroupId;
+  }
+
   const { data: insertedCase, error: insertError } = await client
     .from('rx_cases')
-    .insert({
-      case_type: input.caseType,
-      detected_items: detectedItems,
-      ingredient_ids: uniqueIngredientIds,
-      ocr_raw_text: input.ocrRawText,
-      ocr_sections: {
-        medication_lines: finalOcrSections.medicationLines,
-        instruction_lines: finalOcrSections.instructionLines,
-        indications_lines: finalOcrSections.indicationsLines,
-        warnings_lines: finalOcrSections.warningsLines,
-        side_effects_lines: finalOcrSections.sideEffectsLines,
-        dispensing_date_lines: finalOcrSections.dispensingDateLines,
-        quantity_lines: finalOcrSections.quantityLines,
-        pharmacist_lines: finalOcrSections.pharmacistLines,
-        case_fields: finalOcrSections.caseFields,
-        remote_model: finalOcrSections.remoteModel ?? null,
-      },
-      photo_paths: [],
-      share_to_all_care_teams: true,
-      user_id: userId,
-    })
+    .insert(insertPayload)
     .select('case_id')
     .single();
 
@@ -519,6 +520,49 @@ export async function createCase(input: CreateCaseInput, client: AppSupabaseClie
   return { caseId };
 }
 
+async function createMultiPhotoCases(
+  input: CreateCaseInput,
+  userId: string,
+  client: AppSupabaseClient,
+): Promise<{ caseId: string; caseGroupId: string }> {
+  const caseGroupId = Date.now().toString(36) + Math.random().toString(36).slice(2);
+  let firstCaseId: string | null = null;
+
+  for (const photoUri of input.photoUris) {
+    const ocrResult = await runRemoteOcrImage(photoUri);
+    const sections = mapOcrSections(ocrResult);
+
+    const photoInput: CreateCaseInput = {
+      ...input,
+      photoUris: [photoUri],
+      ocrRawText: ocrResult.text,
+      sectionedOcr: sections,
+      caseGroupId,
+    };
+
+    const { caseId } = await createSingleCase(photoInput, userId, client);
+
+    if (!firstCaseId) {
+      firstCaseId = caseId;
+    }
+  }
+
+  return { caseId: firstCaseId!, caseGroupId };
+}
+
+export async function createCase(
+  input: CreateCaseInput,
+  client: AppSupabaseClient = getSupabaseClient(),
+): Promise<{ caseId: string; caseGroupId?: string }> {
+  const userId = await requireCurrentUserId(client);
+
+  if (input.photoUris.length > 1) {
+    return createMultiPhotoCases(input, userId, client);
+  }
+
+  return createSingleCase(input, userId, client);
+}
+
 export async function getCase(caseId: string, client: AppSupabaseClient = getSupabaseClient()): Promise<CaseRecord> {
   await requireCurrentUserId(client);
 
@@ -556,9 +600,7 @@ export async function getCase(caseId: string, client: AppSupabaseClient = getSup
       quantityLines: row.ocr_sections?.quantity_lines ?? [],
       pharmacistLines: row.ocr_sections?.pharmacist_lines ?? [],
       caseFields: row.ocr_sections?.case_fields ?? null,
-      remoteModel: row.ocr_sections?.remote_model ?? null,
-      photoCount: row.ocr_sections?.photo_count ?? row.photo_paths?.length ?? 1,
-      photoAttributions: row.ocr_sections?.photo_attributions ?? undefined,
+      remoteModel: (row.ocr_sections?.remote_model ?? null) as RemoteOcrResult | null,
     },
     photoPaths,
     photoUrls,

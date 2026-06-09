@@ -1,3 +1,5 @@
+import type { RemoteOcrResult } from '../types';
+
 const CACHE_DIR = 'file://cache/';
 
 const mockFileSystem = {
@@ -426,7 +428,6 @@ describe('mergeAdjacentLines', () => {
 
 describe('mapRemoteToOcrResult', () => {
   let mapRemoteToOcrResult: typeof import('../ocr').mapRemoteToOcrResult;
-  let RemoteOcrResult: typeof import('../ocr').RemoteOcrResult;
 
   beforeAll(() => {
     ({ mapRemoteToOcrResult } = loadOcrModule('android'));
@@ -440,6 +441,9 @@ describe('mapRemoteToOcrResult', () => {
     const remote: RemoteOcrResult = {
       engine: 'paddleocr-ppstructurev3',
       version: 'v1',
+      case_fields: null,
+      extraction_engine: '',
+      extraction_fallback: false,
       pages: [
         {
           width: 800,
@@ -469,6 +473,9 @@ describe('mapRemoteToOcrResult', () => {
     const remote: RemoteOcrResult = {
       engine: 'paddleocr-ppstructurev3',
       version: 'v1',
+      case_fields: null,
+      extraction_engine: '',
+      extraction_fallback: false,
       pages: [
         {
           width: 800,
@@ -500,6 +507,9 @@ describe('mapRemoteToOcrResult', () => {
     const remote: RemoteOcrResult = {
       engine: 'paddleocr-ppstructurev3',
       version: 'v1',
+      case_fields: null,
+      extraction_engine: '',
+      extraction_fallback: false,
       pages: [],
     };
 
@@ -513,6 +523,9 @@ describe('mapRemoteToOcrResult', () => {
     const remote: RemoteOcrResult = {
       engine: 'paddleocr-ppstructurev3',
       version: 'v1',
+      case_fields: null,
+      extraction_engine: '',
+      extraction_fallback: false,
       pages: [{ width: 800, height: 600, elements: [] }],
     };
 
@@ -526,6 +539,9 @@ describe('mapRemoteToOcrResult', () => {
     const remote: RemoteOcrResult = {
       engine: 'paddleocr-ppstructurev3',
       version: 'v1',
+      case_fields: null,
+      extraction_engine: '',
+      extraction_fallback: false,
       pages: [
         {
           width: 1024,
@@ -546,6 +562,9 @@ describe('mapRemoteToOcrResult', () => {
     const remote: RemoteOcrResult = {
       engine: 'paddleocr-ppstructurev3',
       version: 'v1',
+      case_fields: null,
+      extraction_engine: '',
+      extraction_fallback: false,
       pages: [
         {
           width: 1024,
@@ -567,6 +586,9 @@ describe('mapRemoteToOcrResult', () => {
     const remote: RemoteOcrResult = {
       engine: 'paddleocr-ppstructurev3',
       version: 'v1',
+      case_fields: null,
+      extraction_engine: '',
+      extraction_fallback: false,
       pages: [
         {
           width: 800,
@@ -779,85 +801,7 @@ describe('runRemoteOcrImage', () => {
   });
 });
 
-describe('mapRemoteToOcrResult photo_index propagation', () => {
-  let mapRemoteToOcrResult: typeof import('../ocr').mapRemoteToOcrResult;
-  let RemoteOcrResult: typeof import('../ocr').RemoteOcrResult;
 
-  beforeAll(() => {
-    ({ mapRemoteToOcrResult } = loadOcrModule('android'));
-  });
-
-  afterAll(() => {
-    jest.resetModules();
-  });
-
-  test('propagates photo_index from RemoteOcrElement to OcrLine and OcrBlock', () => {
-    const remote: RemoteOcrResult = {
-      engine: 'paddleocr-ppstructurev3',
-      version: 'v1',
-      pages: [
-        {
-          width: 800,
-          height: 1200,
-          elements: [
-            { type: 'text', text: '姓名：陳小明', bbox: [20, 40, 150, 56], confidence: 0.99, photo_index: 0 },
-            { type: 'text', text: '藥名 AMOXICILLIN', bbox: [20, 80, 200, 96], confidence: 0.98, photo_index: 0 },
-          ],
-        },
-        {
-          width: 800,
-          height: 1200,
-          elements: [
-            { type: 'text', text: '警語 開封後存放', bbox: [20, 640, 160, 656], confidence: 0.95, photo_index: 1 },
-            { type: 'text', text: '副作用 可能腹瀉', bbox: [20, 680, 160, 696], confidence: 0.94, photo_index: 1 },
-          ],
-        },
-      ],
-    };
-
-    const result = mapRemoteToOcrResult(remote);
-
-    const photo0Blocks = result.blocks.filter((b) => b.photoIndex === 0);
-    const photo1Blocks = result.blocks.filter((b) => b.photoIndex === 1);
-
-    expect(photo0Blocks).toHaveLength(2);
-    expect(photo0Blocks.map((b) => b.text)).toEqual(
-      expect.arrayContaining(['姓名：陳小明', '藥名 AMOXICILLIN']),
-    );
-
-    expect(photo1Blocks).toHaveLength(2);
-    expect(photo1Blocks.map((b) => b.text)).toEqual(
-      expect.arrayContaining(['警語 開封後存放', '副作用 可能腹瀉']),
-    );
-
-    for (const block of result.blocks) {
-      for (const line of block.lines) {
-        expect(line.photoIndex).toBeDefined();
-      }
-    }
-  });
-
-  test('defaults photoIndex to 0 when photo_index is not present', () => {
-    const remote: RemoteOcrResult = {
-      engine: 'paddleocr-ppstructurev3',
-      version: 'v1',
-      pages: [
-        {
-          width: 800,
-          height: 600,
-          elements: [
-            { type: 'text', text: 'AMOXICILLIN', bbox: [20, 40, 200, 56], confidence: 0.99 },
-          ],
-        },
-      ],
-    };
-
-    const result = mapRemoteToOcrResult(remote);
-
-    expect(result.blocks[0].photoIndex).toBe(0);
-    expect(result.blocks[0].lines[0].photoIndex).toBe(0);
-  });
-});
 
 describe('runOcrOnImagesStructured multi-photo routing', () => {
   beforeEach(() => {
@@ -875,38 +819,28 @@ describe('runOcrOnImagesStructured multi-photo routing', () => {
     jest.clearAllMocks();
   });
 
-  test('uses runRemoteOcrImageMulti when uris.length > 1', async () => {
-    const mockFetch = jest.fn().mockResolvedValue({
-      ok: true,
+  test('calls /parse for each photo when uris.length > 1', async () => {
+    mockFileSystem.uploadAsync.mockResolvedValue({
       status: 200,
-      json: jest.fn().mockResolvedValue({
+      body: JSON.stringify({
         engine: 'paddleocr-ppstructurev3',
         version: 'v1',
-        pages: [
-          { width: 800, height: 1200, elements: [
-            { type: 'text', text: '姓名：陳', bbox: [20, 40, 100, 56], confidence: 0.99, photo_index: 0 },
-          ]},
-          { width: 800, height: 1200, elements: [
-            { type: 'text', text: '警語', bbox: [20, 640, 80, 656], confidence: 0.99, photo_index: 1 },
-          ]},
-        ],
+        pages: [{ width: 800, height: 600, elements: [
+          { type: 'text', text: 'AMOXICILLIN', bbox: [20, 40, 200, 56], confidence: 0.99 },
+        ]}],
         case_fields: { patientName: '陳' },
         extraction_engine: 'llm',
         extraction_fallback: false,
-        photo_count: 2,
       }),
     });
-    global.fetch = mockFetch;
 
     const { runOcrOnImagesStructured } = loadOcrModule('android');
 
     const result = await runOcrOnImagesStructured(['file://photo-1.jpg', 'file://photo-2.jpg']);
 
-    expect(mockFetch).toHaveBeenCalledTimes(1);
-    expect(result.blocks.some((b) => b.photoIndex === 0)).toBe(true);
-    expect(result.blocks.some((b) => b.photoIndex === 1)).toBe(true);
-    expect(result.modelData?.photo_count).toBe(2);
-    expect(result.modelData?.case_fields?.patientName).toBe('陳');
+    // Each photo gets its own /parse call via uploadAsync
+    expect(mockFileSystem.uploadAsync).toHaveBeenCalledTimes(2);
+    expect(result.text).toBeTruthy();
   });
 
   test('still uses individual /parse endpoint for single photo', async () => {
@@ -916,7 +850,7 @@ describe('runOcrOnImagesStructured multi-photo routing', () => {
         engine: 'paddleocr-ppstructurev3',
         version: 'v1',
         pages: [{ width: 800, height: 600, elements: [
-          { type: 'text', text: 'AMOXICILLIN', bbox: [20, 40, 200, 56], confidence: 0.99, photo_index: 0 },
+          { type: 'text', text: 'AMOXICILLIN', bbox: [20, 40, 200, 56], confidence: 0.99 },
         ]}],
       }),
     });

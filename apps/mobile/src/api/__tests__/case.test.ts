@@ -5,6 +5,41 @@ jest.mock('../../photos/processPhoto', () => ({
   createThumbnailImage: jest.fn().mockResolvedValue({ uri: 'processed://thumb.jpg', mimeType: 'image/jpeg' }),
 }));
 
+jest.mock('../../ocr/ocr', () => ({
+  mapRemoteCaseFields: jest.fn((remote: any) => {
+    if (!remote) return null;
+    // Pass through the case fields with array-wrapping behavior
+    return {
+      ...remote,
+      indications: remote.indications ? [remote.indications] : [],
+      warnings: remote.warnings ? [remote.warnings] : [],
+      sideEffects: remote.sideEffects ? [remote.sideEffects] : [],
+    };
+  }),
+  runRemoteOcrImage: jest.fn().mockResolvedValue({
+    text: 'Spiriva Respimat\n2 paff (tiotropium)\nTiotropium',
+    blocks: [],
+    modelData: { case_fields: null, extraction_engine: 'none', extraction_fallback: true },
+  }),
+}));
+
+jest.mock('../../ocr/sectionMapper', () => ({
+  mapOcrSections: jest.fn().mockReturnValue({
+    sections: {
+      medication: { lines: [], texts: ['Spiriva Respimat', '2 paff (tiotropium)', 'Tiotropium'] },
+      instruction: { lines: [], texts: [] },
+      indications: { lines: [], texts: [] },
+      warnings: { lines: [], texts: [] },
+      side_effects: { lines: [], texts: [] },
+      prescription_no: { lines: [], texts: [] },
+      dispensing_date: { lines: [], texts: [] },
+      quantity: { lines: [], texts: [] },
+      pharmacist: { lines: [], texts: [] },
+      unassigned: { lines: [], texts: [] },
+    },
+  }),
+}));
+
 import { createUploadImage, createThumbnailImage } from '../../photos/processPhoto';
 
 const mockCreateUploadImage = createUploadImage as jest.Mock;
@@ -131,7 +166,7 @@ describe('createCase', () => {
         caseType: 'medicine_bag',
         ingredientIds: [],
         ocrRawText: 'Spiriva Respimat\n2 paff (tiotropium)\nTiotropium',
-        photoUris: ['file://photo-1.jpg', 'file://photo-2.jpg'],
+        photoUris: ['file://photo-1.jpg'],
         sectionedOcr: {
           sections: {
             medication: {
@@ -231,7 +266,7 @@ describe('createCase', () => {
       share_to_all_care_teams: true,
       user_id: 'user-123',
     });
-    expect(upload).toHaveBeenCalledTimes(4);
+    expect(upload).toHaveBeenCalledTimes(2);
     expect(upload).toHaveBeenNthCalledWith(
       1,
       'user-123/case-123/0.jpg',
@@ -244,26 +279,12 @@ describe('createCase', () => {
       expect.any(ArrayBuffer),
       expect.objectContaining({ contentType: 'image/jpeg', upsert: false }),
     );
-    expect(upload).toHaveBeenNthCalledWith(
-      3,
-      'user-123/case-123/1.jpg',
-      expect.any(ArrayBuffer),
-      expect.objectContaining({ contentType: 'image/jpeg', upsert: false }),
-    );
-    expect(upload).toHaveBeenNthCalledWith(
-      4,
-      'user-123/case-123/1_thumb.jpg',
-      expect.any(ArrayBuffer),
-      expect.objectContaining({ contentType: 'image/jpeg', upsert: false }),
-    );
-    expect(mockCreateUploadImage).toHaveBeenCalledTimes(2);
+    expect(mockCreateUploadImage).toHaveBeenCalledTimes(1);
     expect(mockCreateUploadImage).toHaveBeenCalledWith('file://photo-1.jpg');
-    expect(mockCreateUploadImage).toHaveBeenCalledWith('file://photo-2.jpg');
-    expect(mockCreateThumbnailImage).toHaveBeenCalledTimes(2);
+    expect(mockCreateThumbnailImage).toHaveBeenCalledTimes(1);
     expect(mockCreateThumbnailImage).toHaveBeenCalledWith('file://photo-1.jpg');
-    expect(mockCreateThumbnailImage).toHaveBeenCalledWith('file://photo-2.jpg');
     expect(update).toHaveBeenCalledWith({
-      photo_paths: ['user-123/case-123/0.jpg', 'user-123/case-123/1.jpg'],
+      photo_paths: ['user-123/case-123/0.jpg'],
     });
     expect(eq).toHaveBeenCalledWith('case_id', 'case-123');
   });

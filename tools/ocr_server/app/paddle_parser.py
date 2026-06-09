@@ -320,46 +320,4 @@ async def parse_image_bytes(image_bytes: bytes) -> ParsedResult:
     )
 
 
-async def parse_multi_image_bytes(images_bytes: list[bytes]) -> ParsedResult:
-    """Parse multiple images and combine into a single ParsedResult.
 
-    Each image is OCR'd independently. Layout texts are combined with
-    photo headers so the LLM sees all photos' content in one request.
-    Returns a single set of case_fields extracted from the combined layout.
-    """
-    pages: list[ParsedPage] = []
-    combined_layout_parts: list[str] = []
-
-    for i, image_bytes in enumerate(images_bytes):
-        page, _, layout_text, _ = await _parse_single_image(image_bytes, photo_index=i)
-        pages.append(page)
-        if layout_text.strip():
-            header = f"--- Photo {i + 1} ---"
-            combined_layout_parts.append(f"{header}\n{layout_text}")
-
-    combined_layout = "\n\n".join(combined_layout_parts) if combined_layout_parts else ""
-
-    case_fields = None
-    extraction_engine = "none"
-    extraction_fallback = False
-
-    if combined_layout.strip():
-        try:
-            case_fields = await extract_fields_with_groq(combined_layout)
-            if case_fields is not None:
-                extraction_engine = "llm"
-            else:
-                extraction_fallback = True
-        except Exception as exc:
-            print("[Groq] Unexpected error in field extraction:", exc)
-            extraction_fallback = True
-
-    return ParsedResult(
-        engine="paddleocr-ppstructurev3",
-        version="v1",
-        pages=pages,
-        case_fields=case_fields,
-        extraction_engine=extraction_engine,
-        extraction_fallback=extraction_fallback,
-        photo_count=len(images_bytes),
-    )
