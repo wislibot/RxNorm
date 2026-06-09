@@ -341,32 +341,29 @@ export function CasePageScreen({ route }: Props) {
     setPhotoModal({ visible: false, index: 0 });
   }, []);
 
-  const PhotoStrip = ({ urls }: { urls: string[] }) => (
-    <View style={styles.card}>
-      <Text style={styles.sectionTitle}>
-        {t('casePagePhotoTitle', { count: urls.length })}
-      </Text>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.photoStrip}>
-        {urls.map((url, idx) => (
-          <Pressable key={`thumb-${idx}`} onPress={() => openPhotoModal(idx)}>
-            <View style={styles.photoThumb}>
-              <Image source={{ uri: url }} style={styles.photoThumbImage} />
-              <View style={styles.photoBadge}>
-                <Text style={styles.photoBadgeText}>{idx + 1}</Text>
-              </View>
-            </View>
-          </Pressable>
-        ))}
-      </ScrollView>
-    </View>
-  );
-
-  const renderSinglePhoto = () => {
+  const renderPhotoStrip = () => {
     const urls = caseRecord?.photoUrls ?? [];
-    if (urls.length !== 1) return null;
+    if (urls.length === 0) return null;
+
     return (
       <View style={styles.card}>
-        <Image source={{ uri: urls[0] }} style={styles.singlePhoto} resizeMode="contain" />
+        <Text style={styles.sectionTitle}>
+          {t('casePagePhotoTitle', { count: urls.length })}
+        </Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.photoStrip}>
+          {urls.map((photoUrl, idx) => (
+            <Pressable key={`thumb-${idx}`} onPress={() => openPhotoModal(idx)}>
+              <View style={styles.thumbnailWrapper}>
+                <Image source={{ uri: photoUrl }} style={styles.thumbnail} />
+                {urls.length > 1 ? (
+                  <View style={styles.thumbnailBadge}>
+                    <Text style={styles.thumbnailBadgeText}>{idx + 1}</Text>
+                  </View>
+                ) : null}
+              </View>
+            </Pressable>
+          ))}
+        </ScrollView>
       </View>
     );
   };
@@ -549,10 +546,9 @@ export function CasePageScreen({ route }: Props) {
           <Text style={styles.subtitle}>{createdAtLabel}</Text>
         </View>
 
-        {caseRecord.photoUrls.length === 1 ? renderSinglePhoto() : null}
-        {caseRecord.photoUrls.length > 1 ? <PhotoStrip urls={caseRecord.photoUrls} /> : null}
-
         {renderCaseSummary()}
+
+        {renderPhotoStrip()}
 
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>{t('casePageAutoShareTitle')}</Text>
@@ -652,18 +648,18 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     paddingVertical: spacing.xs,
   },
-  photoThumb: {
+  thumbnailWrapper: {
     borderRadius: 8,
     marginRight: spacing.sm,
     position: 'relative',
   },
-  photoThumbImage: {
+  thumbnail: {
     backgroundColor: colors.border,
     borderRadius: 8,
     height: 80,
     width: 80,
   },
-  photoBadge: {
+  thumbnailBadge: {
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
     borderRadius: 12,
@@ -674,15 +670,10 @@ const styles = StyleSheet.create({
     top: -4,
     width: 24,
   },
-  photoBadgeText: {
+  thumbnailBadgeText: {
     color: '#000000',
     fontSize: 12,
     fontWeight: '700',
-  },
-  singlePhoto: {
-    borderRadius: radius.md,
-    height: 200,
-    width: '100%',
   },
   modalOverlay: {
     backgroundColor: 'rgba(0,0,0,0.95)',
