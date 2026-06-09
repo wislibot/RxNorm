@@ -121,6 +121,17 @@ async function buildSignedUrls(client: AppSupabaseClient, photoPaths: string[]) 
   return urls;
 }
 
+function stripNonMedicationText(line: string): string {
+  let result = line;
+  result = result.replace(/適應症[：:].*$/g, '');
+  result = result.replace(/警語[：:].*$/g, '');
+  result = result.replace(/成份名[：:].*$/g, '');
+  result = result.replace(/\|\s*藥師\s*$/g, '');
+  result = result.replace(/代收健保.*$/g, '');
+  result = result.replace(/[|｜]\s*$/, '');
+  return result.trim();
+}
+
 function getMedicationCandidateLines(input: CreateCaseInput) {
   const groupingDiagnostics = analyzeMedicationLineGrouping(input.sectionedOcr?.sections.medication.lines ?? []);
   const groupedMedicationItems = groupingDiagnostics.groupedItems;
@@ -184,7 +195,7 @@ function getMedicationCandidateLines(input: CreateCaseInput) {
     }
   }
 
-  return sectionLines;
+  return sectionLines.map(stripNonMedicationText);
 }
 
 function buildStoredOcrSections(
