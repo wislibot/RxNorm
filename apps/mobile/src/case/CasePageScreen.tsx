@@ -493,13 +493,6 @@ export function CasePageScreen({ route }: Props) {
 
       {renderCaseSummary()}
 
-      <View style={styles.card}>
-        <Text style={styles.sectionTitle}>{t('casePageOcrSectionTitle')}</Text>
-        <ScrollView nestedScrollEnabled style={styles.rawTextBox}>
-          <Text style={styles.rawText}>{caseRecord.ocrRawText || t('ocrEmptyState')}</Text>
-        </ScrollView>
-      </View>
-
       {caseRecord.ocrSections.instructionLines.length > 0 ? (
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>{t('casePageInstructionTitle')}</Text>
@@ -595,20 +588,7 @@ const styles = StyleSheet.create({
     height: 120,
     width: '47%',
   },
-  rawTextBox: {
-    backgroundColor: colors.background,
-    borderColor: colors.border,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    maxHeight: 220,
-    minHeight: 140,
-    padding: spacing.md,
-  },
-  rawText: {
-    color: colors.text,
-    fontSize: typography.body,
-    lineHeight: 28,
-  },
+
   itemCard: {
     backgroundColor: colors.background,
     borderRadius: radius.md,
