@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { Image, ScrollView, StyleSheet, Text, View } from 'react-native';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { Dimensions, Image, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import type { RouteProp } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 
@@ -10,6 +10,8 @@ import type { AutoShareStatus, CaseRecord, DetectedItem } from '../types/case';
 import type { CaseDdiInteraction, CaseDdiResult } from '../types/ddi';
 import { colors, radius, spacing, typography } from '../theme/tokens';
 import { normalizeOcrEnglishSpacing } from '../ocr/normalizeOcrEnglish';
+
+type PhotoModalState = { visible: boolean; index: number };
 
 type MedicationGroup = {
   title: string;
@@ -127,6 +129,7 @@ export function CasePageScreen({ route }: Props) {
   const [ddiResult, setDdiResult] = useState<CaseDdiResult | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
+  const [photoModal, setPhotoModal] = useState<PhotoModalState>({ visible: false, index: 0 });
 
   useEffect(() => {
     let isMounted = true;
@@ -330,6 +333,74 @@ export function CasePageScreen({ route }: Props) {
     );
   };
 
+  const openPhotoModal = useCallback((index: number) => {
+    setPhotoModal({ visible: true, index });
+  }, []);
+
+  const closePhotoModal = useCallback(() => {
+    setPhotoModal({ visible: false, index: 0 });
+  }, []);
+
+  const renderPhotoStrip = () => {
+    const urls = caseRecord?.photoUrls ?? [];
+    if (urls.length === 0) return null;
+
+    return (
+      <View style={styles.card}>
+        <Text style={styles.sectionTitle}>
+          {t('casePagePhotoTitle', { count: urls.length })}
+        </Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.photoStrip}>
+          {urls.map((photoUrl, idx) => (
+            <Pressable key={`thumb-${idx}`} onPress={() => openPhotoModal(idx)}>
+              <View style={styles.thumbnailWrapper}>
+                <Image source={{ uri: photoUrl }} style={styles.thumbnail} />
+                {urls.length > 1 ? (
+                  <View style={styles.thumbnailBadge}>
+                    <Text style={styles.thumbnailBadgeText}>{idx + 1}</Text>
+                  </View>
+                ) : null}
+              </View>
+            </Pressable>
+          ))}
+        </ScrollView>
+      </View>
+    );
+  };
+
+  const renderPhotoModal = () => {
+    const urls = caseRecord?.photoUrls ?? [];
+    if (!photoModal.visible || urls.length === 0) return null;
+
+    const currentUrl = urls[photoModal.index];
+
+    return (
+      <Modal visible={photoModal.visible} transparent animationType="fade" onRequestClose={closePhotoModal}>
+        <View style={styles.modalOverlay}>
+          <Pressable style={styles.modalCloseButton} onPress={closePhotoModal}>
+            <Text style={styles.modalCloseText}>✕</Text>
+          </Pressable>
+          <View style={styles.modalImageContainer}>
+            <Image source={{ uri: currentUrl }} style={styles.modalImage} resizeMode="contain" />
+          </View>
+          {photoModal.index > 0 ? (
+            <Pressable style={[styles.modalNav, styles.modalNavLeft]} onPress={() => openPhotoModal(photoModal.index - 1)}>
+              <Text style={styles.modalNavText}>‹</Text>
+            </Pressable>
+          ) : null}
+          {photoModal.index < urls.length - 1 ? (
+            <Pressable style={[styles.modalNav, styles.modalNavRight]} onPress={() => openPhotoModal(photoModal.index + 1)}>
+              <Text style={styles.modalNavText}>›</Text>
+            </Pressable>
+          ) : null}
+          <Text style={styles.modalCounter}>
+            {photoModal.index + 1} / {urls.length}
+          </Text>
+        </View>
+      </Modal>
+    );
+  };
+
   const norm = (text: string) => normalizeOcrEnglishSpacing(text);
 
   const renderCaseSummary = () => {
@@ -468,30 +539,24 @@ export function CasePageScreen({ route }: Props) {
   }
 
   return (
-    <ScrollView contentContainerStyle={styles.page}>
-      <View style={styles.card}>
-        <Text style={styles.title}>{t('casePageTitle')}</Text>
-        <Text style={styles.subtitle}>{createdAtLabel}</Text>
-      </View>
-
-      <View style={styles.card}>
-        <Text style={styles.sectionTitle}>{t('selectedPhotos')}</Text>
-        <View style={styles.photoGrid}>
-          {caseRecord.photoUrls.map((photoUrl, index) => (
-            <Image key={`${caseRecord.caseId}-${index}`} source={{ uri: photoUrl }} style={styles.photo} />
-          ))}
+    <>
+      <ScrollView contentContainerStyle={styles.page}>
+        <View style={styles.card}>
+          <Text style={styles.title}>{t('casePageTitle')}</Text>
+          <Text style={styles.subtitle}>{createdAtLabel}</Text>
         </View>
-      </View>
 
-      <View style={styles.card}>
-        <Text style={styles.sectionTitle}>{t('casePageAutoShareTitle')}</Text>
-        <Text style={styles.body}>
-          {caseRecord.shareToAllCareTeams ? t('casePageAutoShareDefaultOn') : t('casePageAutoShareDefaultOff')}
-        </Text>
-        <Text style={styles.subtitle}>{shareCountText}</Text>
-      </View>
+        {renderCaseSummary()}
 
-      {renderCaseSummary()}
+        {renderPhotoStrip()}
+
+        <View style={styles.card}>
+          <Text style={styles.sectionTitle}>{t('casePageAutoShareTitle')}</Text>
+          <Text style={styles.body}>
+            {caseRecord.shareToAllCareTeams ? t('casePageAutoShareDefaultOn') : t('casePageAutoShareDefaultOff')}
+          </Text>
+          <Text style={styles.subtitle}>{shareCountText}</Text>
+        </View>
 
       {caseRecord.ocrSections.instructionLines.length > 0 ? (
         <View style={styles.card}>
@@ -517,7 +582,9 @@ export function CasePageScreen({ route }: Props) {
           {ddiResult?.coverage_disclaimer_en ?? t('casePageCoverageDisclaimerFallback')}
         </Text>
       </View>
-    </ScrollView>
+      </ScrollView>
+      {renderPhotoModal()}
+    </>
   );
 }
 
@@ -577,16 +644,101 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     justifyContent: 'space-between',
   },
-  photoGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+  photoStrip: {
     gap: spacing.sm,
+    paddingVertical: spacing.xs,
   },
-  photo: {
+  thumbnailWrapper: {
+    borderRadius: 8,
+    marginRight: spacing.sm,
+    position: 'relative',
+  },
+  thumbnail: {
     backgroundColor: colors.border,
-    borderRadius: radius.md,
-    height: 120,
-    width: '47%',
+    borderRadius: 8,
+    height: 80,
+    width: 80,
+  },
+  thumbnailBadge: {
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    height: 24,
+    justifyContent: 'center',
+    left: -4,
+    position: 'absolute',
+    top: -4,
+    width: 24,
+  },
+  thumbnailBadgeText: {
+    color: '#000000',
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  modalOverlay: {
+    backgroundColor: 'rgba(0,0,0,0.95)',
+    flex: 1,
+    justifyContent: 'center',
+  },
+  modalCloseButton: {
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    borderRadius: 20,
+    height: 40,
+    justifyContent: 'center',
+    position: 'absolute',
+    right: spacing.lg,
+    top: 50,
+    width: 40,
+    zIndex: 10,
+  },
+  modalCloseText: {
+    color: '#FFFFFF',
+    fontSize: 20,
+    fontWeight: '700',
+  },
+  modalImageContainer: {
+    alignItems: 'center',
+    flex: 1,
+    justifyContent: 'center',
+    paddingHorizontal: spacing.xl,
+  },
+  modalImage: {
+    height: '100%',
+    maxHeight: '80%',
+    width: '100%',
+  },
+  modalNav: {
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderRadius: 24,
+    height: 48,
+    justifyContent: 'center',
+    position: 'absolute',
+    top: '50%',
+    width: 48,
+  },
+  modalNavLeft: {
+    left: spacing.md,
+    marginTop: -24,
+  },
+  modalNavRight: {
+    marginTop: -24,
+    right: spacing.md,
+  },
+  modalNavText: {
+    color: '#FFFFFF',
+    fontSize: 32,
+    fontWeight: '300',
+    lineHeight: 36,
+  },
+  modalCounter: {
+    alignSelf: 'center',
+    bottom: 60,
+    color: '#FFFFFF',
+    fontSize: typography.body,
+    fontWeight: '600',
+    position: 'absolute',
   },
 
   itemCard: {
