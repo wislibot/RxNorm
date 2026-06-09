@@ -315,10 +315,24 @@ export async function runOcrOnImagesStructured(uris: string[]): Promise<OcrResul
 
   let modelData: RemoteOcrResult | undefined;
   if (modelDatas.length > 0) {
+    const allCaseFields = modelDatas
+      .map((m) => m.case_fields)
+      .filter((cf): cf is RemoteCaseFields => cf != null);
+
+    let mergedCaseFields: RemoteCaseFields | null = null;
+    if (allCaseFields.length > 0) {
+      mergedCaseFields = { ...allCaseFields[0] };
+      const otherArrays = allCaseFields
+        .map((cf) => (cf as { other?: string[] }).other)
+        .filter((arr): arr is string[] => Array.isArray(arr));
+      const mergedOther = [...new Set(otherArrays.flat())];
+      (mergedCaseFields as { other?: string[] }).other = mergedOther;
+    }
+
     modelData = {
       ...modelDatas[0],
       pages: modelDatas.flatMap((m) => m.pages),
-      case_fields: modelDatas.find((m) => m.case_fields !== null)?.case_fields ?? null,
+      case_fields: mergedCaseFields,
     };
   }
 
