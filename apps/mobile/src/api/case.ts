@@ -26,6 +26,9 @@ type RxCaseRow = {
     quantity_lines?: string[] | null;
     pharmacist_lines?: string[] | null;
     case_fields?: CaseFields | null;
+    remote_model?: unknown;
+    photo_count?: number;
+    photo_attributions?: Array<{ photoIndex: number; sections: Record<string, { lineCount: number; texts: string[] }> }>;
   } | null;
   detected_items: Array<{
     source?: 'ocr_line';
@@ -220,6 +223,13 @@ function buildStoredOcrSections(
     caseFields.brandMatches = brandMatches;
   }
 
+  const photoAttributions = input.sectionedOcr?.photoAttributions
+    ? input.sectionedOcr.photoAttributions.map((attr) => ({
+        photoIndex: attr.photoIndex,
+        sections: attr.sections as Record<string, { lineCount: number; texts: string[] }>,
+      }))
+    : undefined;
+
   return {
     medicationLines: sections?.medication.texts ?? [],
     instructionLines: sections?.instruction.texts ?? [],
@@ -231,6 +241,8 @@ function buildStoredOcrSections(
     pharmacistLines: sections?.pharmacist.texts ?? [],
     caseFields,
     remoteModel: input.sectionedOcr?.modelData ?? null,
+    photoCount: input.photoUris.length,
+    photoAttributions,
   };
 }
 
@@ -545,6 +557,8 @@ export async function getCase(caseId: string, client: AppSupabaseClient = getSup
       pharmacistLines: row.ocr_sections?.pharmacist_lines ?? [],
       caseFields: row.ocr_sections?.case_fields ?? null,
       remoteModel: row.ocr_sections?.remote_model ?? null,
+      photoCount: row.ocr_sections?.photo_count ?? row.photo_paths?.length ?? 1,
+      photoAttributions: row.ocr_sections?.photo_attributions ?? undefined,
     },
     photoPaths,
     photoUrls,

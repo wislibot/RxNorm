@@ -20,11 +20,17 @@ export type SectionEntry = {
   texts: string[];
 };
 
+export type PhotoSectionAttribution = {
+  photoIndex: number;
+  sections: Partial<Record<SectionKey, { lineCount: number; texts: string[] }>>;
+};
+
 export type SectionedOcr = {
   rawLines?: OcrLine[];
   sortedLines?: OcrLine[];
   sections: Record<SectionKey, SectionEntry>;
   modelData?: RemoteOcrResult;
+  photoAttributions?: PhotoSectionAttribution[];
 };
 
 type AnchorDefinition = {
@@ -169,6 +175,35 @@ function appendLine(sections: SectionedOcr['sections'], key: SectionKey, line: O
   sections[key].texts.push(cleanedText);
 }
 
+function buildPhotoAttributions(
+  sections: SectionedOcr['sections'],
+  linePhotoMap: Map<string, number>,
+): PhotoSectionAttribution[] {
+  const photoMap = new Map<number, PhotoSectionAttribution>();
+
+  for (const [sectionKey, entry] of Object.entries(sections)) {
+    if (sectionKey === 'unassigned') continue;
+    for (const line of entry.lines) {
+      const photoIndex = line.photoIndex ?? 0;
+      let attr = photoMap.get(photoIndex);
+      if (!attr) {
+        attr = { photoIndex, sections: {} };
+        photoMap.set(photoIndex, attr);
+      }
+      const key = sectionKey as SectionKey;
+      if (!attr.sections[key]) {
+        attr.sections[key] = { lineCount: 0, texts: [] };
+      }
+      attr.sections[key]!.lineCount += 1;
+      if (line.text.trim()) {
+        attr.sections[key]!.texts.push(line.text.trim());
+      }
+    }
+  }
+
+  return Array.from(photoMap.values()).sort((a, b) => a.photoIndex - b.photoIndex);
+}
+
 export function mapOcrSections(result: OcrResult): SectionedOcr {
   const sections = buildEmptySections();
   const rawLines = flattenLines(result);
@@ -179,7 +214,8 @@ export function mapOcrSections(result: OcrResult): SectionedOcr {
     for (const line of lines) {
       appendLine(sections, 'unassigned', line);
     }
-    return { rawLines, sections, sortedLines: lines, modelData: result.modelData };
+    const photoAttributions = buildPhotoAttributions(sections, new Map());
+    return { rawLines, sections, sortedLines: lines, modelData: result.modelData, photoAttributions };
   }
 
   const regions = buildRegions(lines, anchors);
@@ -209,5 +245,7 @@ export function mapOcrSections(result: OcrResult): SectionedOcr {
     }
   }
 
-  return { rawLines, sections, sortedLines: lines, modelData: result.modelData };
+  const photoAttributions = buildPhotoAttributions(sections, new Map());
+
+  return { rawLines, sections, sortedLines: lines, modelData: result.modelData, photoAttributions };
 }

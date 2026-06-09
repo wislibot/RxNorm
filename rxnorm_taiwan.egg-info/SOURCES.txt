@@ -21,7 +21,10 @@ etl/config.py
 etl/curated_build.py
 etl/curated_repository.py
 etl/db.py
+etl/ddi_case_evaluator.py
+etl/import_ddi_ddinter.py
 etl/import_raw.py
+etl/patch_ddi_name_map_manual.py
 etl/paths.py
 etl/qc_report.py
 etl/raw_import.py

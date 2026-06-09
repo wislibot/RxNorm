@@ -41,6 +41,11 @@ export type OcrSections = {
   pharmacistLines: string[];
   caseFields?: CaseFields | null;
   remoteModel?: RemoteOcrResult | null;
+  photoCount?: number;
+  photoAttributions?: Array<{
+    photoIndex: number;
+    sections: Record<string, { lineCount: number; texts: string[] }>;
+  }>;
 };
 
 export type CaseRecord = {

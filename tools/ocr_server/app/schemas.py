@@ -10,6 +10,7 @@ class OcrElement(BaseModel):
     text: str
     bbox: List[float] = Field(description="[x1, y1, x2, y2] in pixel coordinates")
     confidence: float
+    photo_index: int = Field(default=0, description="Index of the source photo (0-based)")
 
 
 class ParsedPage(BaseModel):
@@ -25,6 +26,7 @@ class ParsedResult(BaseModel):
     case_fields: Optional[Dict[str, Any]] = None
     extraction_engine: str = "none"
     extraction_fallback: bool = False
+    photo_count: int = Field(default=1, description="Number of source photos")
 
 
 class HealthResponse(BaseModel):
