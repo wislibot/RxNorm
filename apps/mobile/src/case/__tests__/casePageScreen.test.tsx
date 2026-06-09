@@ -77,6 +77,7 @@ jest.mock('../../api/case', () => ({
     shareToAllCareTeams: true,
     updatedAt: '2026-05-21T10:00:00.000Z',
   }),
+  getCaseGroupCases: jest.fn().mockResolvedValue([]),
   getMockAutoShareStatus: jest.fn().mockResolvedValue({
     sharedCareTeamCount: 2,
     isAutoShareDefault: true,

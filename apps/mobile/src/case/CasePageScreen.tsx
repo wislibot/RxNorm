@@ -3,7 +3,7 @@ import { Dimensions, Image, Modal, Pressable, ScrollView, StyleSheet, Text, View
 import type { RouteProp } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 
-import { getCase, getMockAutoShareStatus } from '../api/case';
+import { getCase, getCaseGroupCases, getMockAutoShareStatus } from '../api/case';
 import { getCaseDdiByIngredients } from '../api/ddi';
 import type { CasePageParams } from './navigationTypes';
 import type { AutoShareStatus, CaseRecord, DetectedItem } from '../types/case';
@@ -143,13 +143,46 @@ export function CasePageScreen({ route }: Props) {
           getCase(caseId),
           getMockAutoShareStatus(),
         ]);
-        const ddi = await getCaseDdiByIngredients(loadedCase.ingredientIds);
+
+        let mergedCase = loadedCase;
+
+        if (loadedCase.caseGroupId) {
+          const groupCases = await getCaseGroupCases(loadedCase.caseGroupId);
+
+          if (groupCases.length > 0) {
+            const allDetectedItems = groupCases.flatMap((c) => c.detectedItems);
+            const allIngredientIds = groupCases.flatMap((c) => c.ingredientIds);
+            const allPhotoUrls = groupCases.flatMap((c) => c.photoUrls);
+            const allThumbUrls = groupCases.flatMap((c) => c.thumbUrls);
+            const allPhotoPaths = groupCases.flatMap((c) => c.photoPaths);
+
+            const seenIds = new Set<string>();
+            const dedupedItems = allDetectedItems.filter((item) => {
+              if (item.matchStatus === 'matched' && item.ingredientId) {
+                if (seenIds.has(item.ingredientId)) return false;
+                seenIds.add(item.ingredientId);
+              }
+              return true;
+            });
+
+            mergedCase = {
+              ...loadedCase,
+              detectedItems: dedupedItems,
+              ingredientIds: Array.from(new Set(allIngredientIds)),
+              photoUrls: allPhotoUrls,
+              thumbUrls: allThumbUrls,
+              photoPaths: allPhotoPaths,
+            };
+          }
+        }
+
+        const ddi = await getCaseDdiByIngredients(mergedCase.ingredientIds);
 
         if (!isMounted) {
           return;
         }
 
-        setCaseRecord(loadedCase);
+        setCaseRecord(mergedCase);
         setAutoShareStatus(shareStatus);
         setDdiResult(ddi);
       } catch {

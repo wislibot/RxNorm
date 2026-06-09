@@ -568,7 +568,7 @@ export async function getCase(caseId: string, client: AppSupabaseClient = getSup
 
   const { data, error } = await client
     .from('rx_cases')
-    .select('case_id, case_type, created_at, updated_at, ocr_raw_text, ocr_sections, detected_items, photo_paths, ingredient_ids, share_to_all_care_teams')
+    .select('case_id, case_type, created_at, updated_at, ocr_raw_text, ocr_sections, detected_items, photo_paths, ingredient_ids, share_to_all_care_teams, case_group_id')
     .eq('case_id', caseId)
     .single();
 
@@ -606,7 +606,62 @@ export async function getCase(caseId: string, client: AppSupabaseClient = getSup
     photoUrls,
     thumbUrls,
     shareToAllCareTeams: row.share_to_all_care_teams,
+    caseGroupId: row.case_group_id ?? undefined,
   };
+}
+
+export async function getCaseGroupCases(
+  caseGroupId: string,
+  client: AppSupabaseClient = getSupabaseClient(),
+): Promise<CaseRecord[]> {
+  await requireCurrentUserId(client);
+
+  const { data, error } = await client
+    .from('rx_cases')
+    .select('case_id, case_type, created_at, updated_at, ocr_raw_text, ocr_sections, detected_items, photo_paths, ingredient_ids, share_to_all_care_teams, case_group_id')
+    .eq('case_group_id', caseGroupId);
+
+  if (error) {
+    throw error;
+  }
+
+  const rows = (data ?? []) as RxCaseRow[];
+
+  return Promise.all(
+    rows.map(async (row) => {
+      const photoPaths = row.photo_paths ?? [];
+      const photoUrls = await buildSignedUrls(client, photoPaths);
+      const thumbPaths = photoPaths.map((p) => p.replace(/\.jpg$/, '_thumb.jpg'));
+      const thumbUrls = await buildSignedUrls(client, thumbPaths).catch(() => [] as string[]);
+
+      return {
+        caseId: row.case_id,
+        caseType: row.case_type,
+        createdAt: row.created_at,
+        detectedItems: mapDetectedItemsFromDb(row.detected_items),
+        updatedAt: row.updated_at,
+        ingredientIds: row.ingredient_ids ?? [],
+        ocrRawText: row.ocr_raw_text,
+        ocrSections: {
+          medicationLines: row.ocr_sections?.medication_lines ?? [],
+          instructionLines: row.ocr_sections?.instruction_lines ?? [],
+          indicationsLines: row.ocr_sections?.indications_lines ?? [],
+          warningsLines: row.ocr_sections?.warnings_lines ?? [],
+          sideEffectsLines: row.ocr_sections?.side_effects_lines ?? [],
+          dispensingDateLines: row.ocr_sections?.dispensing_date_lines ?? [],
+          quantityLines: row.ocr_sections?.quantity_lines ?? [],
+          pharmacistLines: row.ocr_sections?.pharmacist_lines ?? [],
+          caseFields: row.ocr_sections?.case_fields ?? null,
+          remoteModel: (row.ocr_sections?.remote_model ?? null) as RemoteOcrResult | null,
+        },
+        photoPaths,
+        photoUrls,
+        thumbUrls,
+        shareToAllCareTeams: row.share_to_all_care_teams,
+        caseGroupId: row.case_group_id ?? undefined,
+      };
+    }),
+  );
 }
 
 export async function listCases(
