@@ -97,13 +97,12 @@ export function SaveToPlaylistModal({ visible, drug, onSelectSaved, onSelectPlay
 
   return (
     <Modal transparent visible={visible} animationType="fade" onRequestClose={onCancel}>
-      <Pressable style={styles.overlay} onPress={onCancel}>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 40 : 0}
-          style={styles.sheet}
-        >
-          <Pressable style={styles.sheetContent} onPress={(e) => e.stopPropagation()}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{ flex: 1 }}
+      >
+        <Pressable style={styles.overlay} onPress={onCancel}>
+          <Pressable style={styles.sheet} onPress={(e) => e.stopPropagation()}>
           {step === 'choose' ? (
             <>
               <Text style={styles.sheetTitle}>{t('saveModalTitle')}</Text>
@@ -216,8 +215,8 @@ export function SaveToPlaylistModal({ visible, drug, onSelectSaved, onSelectPlay
             </>
           )}
           </Pressable>
-        </KeyboardAvoidingView>
-      </Pressable>
+        </Pressable>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
