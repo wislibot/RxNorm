@@ -13,6 +13,8 @@ import { BrandPackageCaptureScreen } from '../scan/BrandPackageCaptureScreen';
 import { CaseDraftScreen } from '../scan/CaseDraftScreen';
 import { MedicineBagCaptureScreen } from '../scan/MedicineBagCaptureScreen';
 import type { ScanStackParamList } from '../scan/types';
+import { DrugDetailScreen } from '../search/DrugDetailScreen';
+import type { SearchStackParamList } from '../search/navigationTypes';
 import { CareTeamsScreen } from '../screens/CareTeamsScreen';
 import { HomeScanScreen } from '../screens/HomeScanScreen';
 import { MyMedsScreen } from '../screens/MyMedsScreen';
@@ -24,6 +26,7 @@ import { colors } from '../theme/tokens';
 const Tab = createBottomTabNavigator();
 const ScanStack = createNativeStackNavigator<ScanStackParamList>();
 const MyMedsStack = createNativeStackNavigator<MyMedsStackParamList>();
+const SearchStack = createNativeStackNavigator<SearchStackParamList>();
 
 function HomeScanNavigator() {
   const { t } = useTranslation();
@@ -77,6 +80,25 @@ function MyMedsNavigator() {
   );
 }
 
+function SearchNavigator() {
+  const { t } = useTranslation();
+
+  return (
+    <SearchStack.Navigator
+      initialRouteName="SearchHome"
+      screenOptions={{
+        contentStyle: {
+          backgroundColor: colors.background,
+        },
+        headerShadowVisible: false,
+      }}
+    >
+      <SearchStack.Screen component={SearchScreen} name="SearchHome" options={{ headerShown: false }} />
+      <SearchStack.Screen component={DrugDetailScreen} name="DrugDetail" options={{ title: t('drugDetailTitle') }} />
+    </SearchStack.Navigator>
+  );
+}
+
 export function PatientTabs() {
   const { t } = useTranslation();
 
@@ -111,7 +133,7 @@ export function PatientTabs() {
           },
         })}
       >
-        <Tab.Screen name="Search" component={SearchScreen} options={{ title: t('searchTab') }} />
+        <Tab.Screen name="Search" component={SearchNavigator} options={{ title: t('searchTab') }} />
         <Tab.Screen name="MyMeds" component={MyMedsNavigator} options={{ title: t('myMedsTab') }} />
         <Tab.Screen
           name="Home"

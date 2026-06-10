@@ -8,11 +8,13 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 
 import { searchDrugs, saveMed, getSavedMeds, type DrugSearchResult } from '../api/drugs';
 import { colors, radius, spacing, typography } from '../theme/tokens';
+import type { SearchStackParamList } from '../search/navigationTypes';
 
 function useDebounce(value: string, delay: number): string {
   const [debouncedValue, setDebouncedValue] = useState(value);
@@ -30,12 +32,14 @@ function DrugCard({
   isSaved,
   onSave,
   onRemove,
+  onPress,
   saving,
 }: {
   drug: DrugSearchResult;
   isSaved: boolean;
   onSave: (drug: DrugSearchResult) => void;
   onRemove: (id: string) => void;
+  onPress: (nhiCode: string) => void;
   saving: boolean;
 }) {
   const { t } = useTranslation();
@@ -54,7 +58,10 @@ function DrugCard({
       : null;
 
   return (
-    <View style={styles.card}>
+    <Pressable
+      onPress={() => onPress(drug.nhi_code)}
+      style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
+    >
       <View style={styles.cardContent}>
         <View style={styles.cardHeader}>
           <View style={styles.cardNames}>
@@ -107,11 +114,15 @@ function DrugCard({
           </View>
         </View>
       </View>
-    </View>
+    </Pressable>
   );
 }
 
-export function SearchScreen() {
+type Props = {
+  navigation: NativeStackNavigationProp<SearchStackParamList, 'SearchHome'>;
+};
+
+export function SearchScreen({ navigation }: Props) {
   const { t } = useTranslation();
   const [query, setQuery] = useState('');
   const debouncedQuery = useDebounce(query, 300);
@@ -202,6 +213,13 @@ export function SearchScreen() {
     }
   }, []);
 
+  const handlePress = useCallback(
+    (nhiCode: string) => {
+      navigation.navigate('DrugDetail', { nhiCode });
+    },
+    [navigation],
+  );
+
   const renderItem = useCallback(
     ({ item }: { item: DrugSearchResult }) => (
       <DrugCard
@@ -209,10 +227,11 @@ export function SearchScreen() {
         isSaved={savedSet.has(item.nhi_code)}
         onSave={handleSave}
         onRemove={handleRemove}
+        onPress={handlePress}
         saving={savingNhiCodes.has(item.nhi_code)}
       />
     ),
-    [savedSet, handleSave, handleRemove, savingNhiCodes],
+    [savedSet, handleSave, handleRemove, handlePress, savingNhiCodes],
   );
 
   const keyExtractor = useCallback((item: DrugSearchResult) => item.nhi_code, []);
@@ -277,6 +296,9 @@ const styles = StyleSheet.create({
     backgroundColor: colors.card,
     borderRadius: radius.lg,
     padding: spacing.lg,
+  },
+  cardPressed: {
+    opacity: 0.8,
   },
   cardContent: {
     gap: spacing.sm,

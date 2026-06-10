@@ -25,6 +25,37 @@ export type SavedMed = {
   saved_at: string;
 };
 
+export type DrugDetailIngredient = {
+  name: string;
+  role: string | null;
+  strength_value: number | null;
+  strength_unit: string | null;
+};
+
+export type DrugDetailVariant = {
+  text: string;
+  language: string | null;
+  type: string | null;
+};
+
+export type DrugDetail = {
+  nhi_code: string;
+  name_en: string | null;
+  name_zh: string | null;
+  ingredient_text: string | null;
+  dose_form: string | null;
+  strength_value: number | null;
+  strength_unit: string | null;
+  is_combo: boolean | null;
+  atc_code: string | null;
+  tfda_link: string | null;
+  price_nhi: number | null;
+  effective_start: string | null;
+  effective_end: string | null;
+  ingredients: DrugDetailIngredient[];
+  variants: DrugDetailVariant[];
+};
+
 export async function searchDrugs(query: string): Promise<DrugSearchResult[]> {
   if (!query.trim()) return [];
   const client = getSupabaseClient();
@@ -34,6 +65,15 @@ export async function searchDrugs(query: string): Promise<DrugSearchResult[]> {
   });
   if (error) throw error;
   return data ?? [];
+}
+
+export async function getDrugDetail(nhiCode: string): Promise<DrugDetail | null> {
+  const client = getSupabaseClient();
+  const { data, error } = await client.rpc('get_drug_detail', {
+    p_nhi_code: nhiCode,
+  });
+  if (error) throw error;
+  return data ?? null;
 }
 
 export async function getSavedMeds(): Promise<SavedMed[]> {

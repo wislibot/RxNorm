@@ -149,5 +149,19 @@
   "savedMedsForm": "劑型：{{form}}",
   "savedMedsStrength": "含量：{{value}}{{unit}}",
   "savedMedsAtc": "ATC：{{code}}",
-  "drugDetailTitle": "藥品詳情"
+  "drugDetailTitle": "藥品詳情",
+  "drugDetailLoadError": "無法載入藥品詳情，請再試一次。",
+  "drugDetailNhiCode": "健保代碼",
+  "drugDetailIngredient": "成分",
+  "drugDetailDoseForm": "劑型",
+  "drugDetailStrength": "含量",
+  "drugDetailAtc": "ATC 代碼",
+  "drugDetailCombo": "複方藥品",
+  "drugDetailComboYes": "是",
+  "drugDetailComboNo": "否",
+  "drugDetailPrice": "健保價格",
+  "drugDetailFree": "免費",
+  "drugDetailEffective": "有效期間",
+  "drugDetailActiveIngredients": "活性成分",
+  "drugDetailViewTfda": "前往 TFDA 查看"
 }

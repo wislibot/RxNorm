@@ -149,5 +149,19 @@
   "savedMedsForm": "Form: {{form}}",
   "savedMedsStrength": "Strength: {{value}}{{unit}}",
   "savedMedsAtc": "ATC: {{code}}",
-  "drugDetailTitle": "Drug Details"
+  "drugDetailTitle": "Drug Details",
+  "drugDetailLoadError": "Could not load drug details. Please try again.",
+  "drugDetailNhiCode": "NHI Code",
+  "drugDetailIngredient": "Ingredient",
+  "drugDetailDoseForm": "Dose Form",
+  "drugDetailStrength": "Strength",
+  "drugDetailAtc": "ATC Code",
+  "drugDetailCombo": "Combination Drug",
+  "drugDetailComboYes": "Yes",
+  "drugDetailComboNo": "No",
+  "drugDetailPrice": "NHI Price",
+  "drugDetailFree": "Free",
+  "drugDetailEffective": "Effective Period",
+  "drugDetailActiveIngredients": "Active Ingredients",
+  "drugDetailViewTfda": "View on TFDA"
 }
