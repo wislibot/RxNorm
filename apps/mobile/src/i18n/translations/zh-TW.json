@@ -163,5 +163,22 @@
   "drugDetailFree": "免費",
   "drugDetailEffective": "有效期間",
   "drugDetailActiveIngredients": "活性成分",
-  "drugDetailViewTfda": "前往 TFDA 查看"
+  "drugDetailViewTfda": "前往 TFDA 查看",
+  "playlistTitle": "播放清單",
+  "playlistSubtitle": "將藥品分類整理",
+  "playlistEmpty": "尚未建立播放清單",
+  "playlistCreateNew": "建立新播放清單",
+  "playlistCreatePrompt": "播放清單名稱",
+  "playlistDrugCount": "{{count}} 種藥品",
+  "playlistEmptyDetail": "此播放清單尚無藥品",
+  "playlistDelete": "刪除播放清單",
+  "playlistRemove": "移除",
+  "saveModalTitle": "儲存藥品",
+  "saveModalToMeds": "儲存至我的藥品",
+  "saveModalToPlaylist": "加入播放清單",
+  "saveModalChoosePlaylist": "選擇播放清單",
+  "saveModalCancel": "取消",
+  "saveModalAdded": "已加入！",
+  "casePageAddAllToPlaylist": "全部加入播放清單",
+  "casePageAddToPlaylist": "加入播放清單"
 }

@@ -1,10 +1,14 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Dimensions, Image, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import type { RouteProp } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 
 import { getCase, getCaseGroupCases, getMockAutoShareStatus } from '../api/case';
 import { getCaseDdiByIngredients } from '../api/ddi';
+import { addToPlaylist } from '../api/playlists';
+import type { DrugSearchResult } from '../api/drugs';
+import { SaveToPlaylistModal } from '../playlists/SaveToPlaylistModal';
 import type { CasePageParams } from './navigationTypes';
 import type { AutoShareStatus, CaseRecord, DetectedItem } from '../types/case';
 import type { CaseDdiInteraction, CaseDdiResult } from '../types/ddi';
@@ -130,6 +134,8 @@ export function CasePageScreen({ route }: Props) {
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
   const [photoModal, setPhotoModal] = useState<PhotoModalState>({ visible: false, index: 0 });
+  const [playlistModalDrug, setPlaylistModalDrug] = useState<DrugSearchResult | null>(null);
+  const [playlistModalDrugs, setPlaylistModalDrugs] = useState<DrugSearchResult[] | null>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -326,8 +332,21 @@ export function CasePageScreen({ route }: Props) {
       <View key={`group-${group.matchStatus}-${groupIdx}`} style={styles.itemCard}>
         <View style={styles.cardHeaderRow}>
           <Text style={styles.itemTitle}>{norm(group.title)}</Text>
-          <View style={[styles.matchBadge, badgeStyle]}>
-            <Text style={[styles.matchBadgeText, badgeTextStyle]}>{badgeLabel}</Text>
+          <View style={styles.headerBadges}>
+            <View style={[styles.matchBadge, badgeStyle]}>
+              <Text style={[styles.matchBadgeText, badgeTextStyle]}>{badgeLabel}</Text>
+            </View>
+            <Pressable
+              onPress={() =>
+                handleAddSingleToPlaylist({
+                  ...group.items[0],
+                  displayName: group.title,
+                })
+              }
+              style={({ pressed }) => [styles.addItemButton, pressed && styles.addItemButtonPressed]}
+            >
+              <Ionicons color={colors.primary} name="add-circle-outline" size={20} />
+            </Pressable>
           </View>
         </View>
         <View style={styles.metaRow}>
@@ -372,6 +391,39 @@ export function CasePageScreen({ route }: Props) {
 
   const closePhotoModal = useCallback(() => {
     setPhotoModal({ visible: false, index: 0 });
+  }, []);
+
+  const handleAddAllToPlaylist = useCallback(() => {
+    const items = caseRecord?.detectedItems ?? [];
+    if (items.length === 0) return;
+    const drugs: DrugSearchResult[] = items.map((item) => ({
+      nhi_code: item.nhiCode ?? '',
+      name_en: item.displayName,
+      name_zh: null,
+      ingredient_text: item.ingredientId ?? null,
+      atc_code: null,
+      dose_form: null,
+      strength_value: null,
+      strength_unit: null,
+      relevance: 1,
+    }));
+    setPlaylistModalDrugs(drugs);
+    setPlaylistModalDrug(null);
+  }, [caseRecord?.detectedItems]);
+
+  const handleAddSingleToPlaylist = useCallback((item: DetectedItem) => {
+    setPlaylistModalDrug({
+      nhi_code: item.nhiCode ?? '',
+      name_en: item.displayName,
+      name_zh: null,
+      ingredient_text: item.ingredientId ?? null,
+      atc_code: null,
+      dose_form: null,
+      strength_value: null,
+      strength_unit: null,
+      relevance: 1,
+    });
+    setPlaylistModalDrugs(null);
   }, []);
 
   const renderPhotoStrip = () => {
@@ -581,6 +633,16 @@ export function CasePageScreen({ route }: Props) {
 
         {renderCaseSummary()}
 
+        {(caseRecord?.detectedItems.length ?? 0) > 0 ? (
+          <Pressable
+            onPress={handleAddAllToPlaylist}
+            style={({ pressed }) => [styles.playlistButton, pressed && styles.playlistButtonPressed]}
+          >
+            <Ionicons color={colors.primary} name="musical-notes" size={20} />
+            <Text style={styles.playlistButtonText}>{t('casePageAddAllToPlaylist')}</Text>
+          </Pressable>
+        ) : null}
+
         {renderPhotoStrip()}
 
         <View style={styles.card}>
@@ -617,6 +679,24 @@ export function CasePageScreen({ route }: Props) {
       </View>
       </ScrollView>
       {renderPhotoModal()}
+      {playlistModalDrug ? (
+        <SaveToPlaylistModal
+          visible
+          drug={playlistModalDrug}
+          onSelectSaved={() => setPlaylistModalDrug(null)}
+          onSelectPlaylist={() => setPlaylistModalDrug(null)}
+          onCancel={() => setPlaylistModalDrug(null)}
+        />
+      ) : null}
+      {playlistModalDrugs && playlistModalDrugs.length > 0 ? (
+        <SaveToPlaylistModal
+          visible
+          drug={playlistModalDrugs[0]}
+          onSelectSaved={() => setPlaylistModalDrugs(null)}
+          onSelectPlaylist={() => setPlaylistModalDrugs(null)}
+          onCancel={() => setPlaylistModalDrugs(null)}
+        />
+      ) : null}
     </>
   );
 }
@@ -927,5 +1007,41 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
     fontSize: typography.label,
     lineHeight: 24,
+  },
+  playlistButton: {
+    alignItems: 'center',
+    backgroundColor: colors.card,
+    borderRadius: radius.md,
+    borderWidth: 1.5,
+    borderColor: colors.primary,
+    borderStyle: 'dashed',
+    flexDirection: 'row',
+    gap: spacing.sm,
+    padding: spacing.md,
+  },
+  playlistButtonPressed: {
+    opacity: 0.8,
+  },
+  playlistButtonText: {
+    color: colors.primary,
+    fontSize: typography.body,
+    fontWeight: '600',
+    lineHeight: 26,
+  },
+  headerBadges: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  addItemButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#E9F2FF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  addItemButtonPressed: {
+    opacity: 0.7,
   },
 });

@@ -7,4 +7,7 @@ export type MyMedsStackParamList = {
   CaseHistory: undefined;
   CasePage: CasePageParams;
   SavedMeds: undefined;
+  PlaylistsHome: undefined;
+  PlaylistDetail: { playlistId: string; playlistName: string };
+  DrugDetail: { nhiCode: string };
 };

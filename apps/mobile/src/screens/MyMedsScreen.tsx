@@ -29,6 +29,13 @@ export function MyMedsScreen({ navigation }: Props) {
         <Text style={styles.cardTitle}>{t('savedMedsTitle')}</Text>
         <Text style={styles.cardBody}>{t('savedMedsSubtitle')}</Text>
       </Pressable>
+      <Pressable
+        onPress={() => navigation.navigate('PlaylistsHome')}
+        style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
+      >
+        <Text style={styles.cardTitle}>{t('playlistTitle')}</Text>
+        <Text style={styles.cardBody}>{t('playlistSubtitle')}</Text>
+      </Pressable>
     </View>
   );
 }

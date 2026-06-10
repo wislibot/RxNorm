@@ -163,5 +163,22 @@
   "drugDetailFree": "Free",
   "drugDetailEffective": "Effective Period",
   "drugDetailActiveIngredients": "Active Ingredients",
-  "drugDetailViewTfda": "View on TFDA"
+  "drugDetailViewTfda": "View on TFDA",
+  "playlistTitle": "Playlists",
+  "playlistSubtitle": "Organize medications into groups",
+  "playlistEmpty": "No playlists yet",
+  "playlistCreateNew": "Create New Playlist",
+  "playlistCreatePrompt": "Playlist name",
+  "playlistDrugCount": "{{count}} drugs",
+  "playlistEmptyDetail": "No medications in this playlist",
+  "playlistDelete": "Delete Playlist",
+  "playlistRemove": "Remove",
+  "saveModalTitle": "Save Medication",
+  "saveModalToMeds": "Save to My Meds",
+  "saveModalToPlaylist": "Add to Playlist",
+  "saveModalChoosePlaylist": "Choose Playlist",
+  "saveModalCancel": "Cancel",
+  "saveModalAdded": "Added!",
+  "casePageAddAllToPlaylist": "Add All to Playlist",
+  "casePageAddToPlaylist": "Add to Playlist"
 }

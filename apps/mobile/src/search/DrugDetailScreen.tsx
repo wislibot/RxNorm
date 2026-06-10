@@ -12,9 +12,10 @@ import type { RouteProp } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 
-import { getDrugDetail, type DrugDetail } from '../api/drugs';
+import { getDrugDetail, saveMed, type DrugDetail, type DrugSearchResult } from '../api/drugs';
 import { colors, radius, spacing, typography } from '../theme/tokens';
 import type { SearchStackParamList } from './navigationTypes';
+import { SaveToPlaylistModal } from '../playlists/SaveToPlaylistModal';
 
 type Props = {
   route: RouteProp<SearchStackParamList, 'DrugDetail'>;
@@ -40,6 +41,8 @@ export function DrugDetailScreen({ route }: Props) {
   const [drug, setDrug] = useState<DrugDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showSaveModal, setShowSaveModal] = useState(false);
+  const [saved, setSaved] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -102,12 +105,46 @@ export function DrugDetailScreen({ route }: Props) {
     (ing) => ing.role === 'active',
   );
 
+  const drugSearchResult: DrugSearchResult | null = drug
+    ? {
+        atc_code: drug.atc_code,
+        dose_form: drug.dose_form,
+        ingredient_text: drug.ingredient_text,
+        name_en: drug.name_en,
+        name_zh: drug.name_zh,
+        nhi_code: drug.nhi_code,
+        strength_value: drug.strength_value,
+        strength_unit: drug.strength_unit,
+        relevance: 1,
+      }
+    : null;
+
   return (
     <ScrollView style={styles.page} contentContainerStyle={styles.content}>
       {/* Header */}
       <View style={styles.header}>
         {drug.name_zh ? <Text style={styles.nameZh}>{drug.name_zh}</Text> : null}
         {drug.name_en ? <Text style={styles.nameEn}>{drug.name_en}</Text> : null}
+        <Pressable
+          onPress={() => {
+            if (saved) return;
+            setShowSaveModal(true);
+          }}
+          style={({ pressed }) => [
+            styles.saveButton,
+            saved && styles.saveButtonSaved,
+            pressed && styles.saveButtonPressed,
+          ]}
+        >
+          <Ionicons
+            color={saved ? colors.card : colors.primary}
+            name={saved ? 'bookmark' : 'bookmark-outline'}
+            size={20}
+          />
+          <Text style={[styles.saveButtonText, saved && styles.saveButtonTextSaved]}>
+            {saved ? t('searchSaved') : t('searchSaveMed')}
+          </Text>
+        </Pressable>
       </View>
 
       {/* Core Info */}
@@ -153,6 +190,27 @@ export function DrugDetailScreen({ route }: Props) {
           <Ionicons color={colors.primary} name="open-outline" size={20} />
           <Text style={styles.linkText}>{t('drugDetailViewTfda')}</Text>
         </Pressable>
+      ) : null}
+
+      {drugSearchResult ? (
+        <SaveToPlaylistModal
+          visible={showSaveModal}
+          drug={drugSearchResult}
+          onSelectSaved={async () => {
+            try {
+              await saveMed(drugSearchResult);
+              setSaved(true);
+            } catch {
+              // silently fail
+            }
+            setShowSaveModal(false);
+          }}
+          onSelectPlaylist={() => {
+            setSaved(true);
+            setShowSaveModal(false);
+          }}
+          onCancel={() => setShowSaveModal(false)}
+        />
       ) : null}
     </ScrollView>
   );
@@ -241,6 +299,32 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: spacing.lg,
     paddingTop: spacing.xl,
+  },
+  saveButton: {
+    alignItems: 'center',
+    borderColor: colors.primary,
+    borderRadius: radius.pill,
+    borderWidth: 1.5,
+    flexDirection: 'row',
+    gap: 4,
+    marginTop: spacing.sm,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    alignSelf: 'flex-start',
+  },
+  saveButtonPressed: {
+    opacity: 0.8,
+  },
+  saveButtonSaved: {
+    backgroundColor: colors.primary,
+  },
+  saveButtonText: {
+    color: colors.primary,
+    fontSize: typography.label,
+    fontWeight: '600',
+  },
+  saveButtonTextSaved: {
+    color: colors.card,
   },
   sectionTitle: {
     color: colors.text,

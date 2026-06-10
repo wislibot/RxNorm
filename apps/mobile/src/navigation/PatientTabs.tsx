@@ -15,6 +15,8 @@ import { MedicineBagCaptureScreen } from '../scan/MedicineBagCaptureScreen';
 import type { ScanStackParamList } from '../scan/types';
 import { DrugDetailScreen } from '../search/DrugDetailScreen';
 import type { SearchStackParamList } from '../search/navigationTypes';
+import { PlaylistsHomeScreen } from '../playlists/PlaylistsHomeScreen';
+import { PlaylistDetailScreen } from '../playlists/PlaylistDetailScreen';
 import { CareTeamsScreen } from '../screens/CareTeamsScreen';
 import { HomeScanScreen } from '../screens/HomeScanScreen';
 import { MyMedsScreen } from '../screens/MyMedsScreen';
@@ -76,6 +78,9 @@ function MyMedsNavigator() {
       <MyMedsStack.Screen component={CaseHistoryScreen} name="CaseHistory" options={{ title: t('scanHistoryTitle') }} />
       <MyMedsStack.Screen component={CasePageScreen} name="CasePage" options={{ title: t('casePageTitle') }} />
       <MyMedsStack.Screen component={SavedMedsScreen} name="SavedMeds" options={{ title: t('savedMedsTitle') }} />
+      <MyMedsStack.Screen component={PlaylistsHomeScreen} name="PlaylistsHome" options={{ title: t('playlistTitle') }} />
+      <MyMedsStack.Screen component={PlaylistDetailScreen} name="PlaylistDetail" options={{ title: t('playlistTitle') }} />
+      <MyMedsStack.Screen component={DrugDetailScreen} name="DrugDetail" options={{ title: t('drugDetailTitle') }} />
     </MyMedsStack.Navigator>
   );
 }

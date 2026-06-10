@@ -13,6 +13,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 
 import { searchDrugs, saveMed, getSavedMeds, type DrugSearchResult } from '../api/drugs';
+import { addToPlaylist } from '../api/playlists';
+import { SaveToPlaylistModal } from '../playlists/SaveToPlaylistModal';
 import { colors, radius, spacing, typography } from '../theme/tokens';
 import type { SearchStackParamList } from '../search/navigationTypes';
 
@@ -34,6 +36,7 @@ function DrugCard({
   onRemove,
   onPress,
   saving,
+  onSaveToPlaylist,
 }: {
   drug: DrugSearchResult;
   isSaved: boolean;
@@ -41,6 +44,7 @@ function DrugCard({
   onRemove: (id: string) => void;
   onPress: (nhiCode: string) => void;
   saving: boolean;
+  onSaveToPlaylist: (drug: DrugSearchResult) => void;
 }) {
   const { t } = useTranslation();
 
@@ -77,7 +81,7 @@ function DrugCard({
               if (isSaved) {
                 onRemove(drug.nhi_code);
               } else {
-                onSave(drug);
+                onSaveToPlaylist(drug);
               }
             }}
             disabled={saving}
@@ -133,6 +137,7 @@ export function SearchScreen({ navigation }: Props) {
   const [savingNhiCodes, setSavingNhiCodes] = useState<Set<string>>(new Set());
   const savedSetRef = useRef<Set<string>>(new Set());
   const [initialLoading, setInitialLoading] = useState(true);
+  const [playlistModalDrug, setPlaylistModalDrug] = useState<DrugSearchResult | null>(null);
 
   useEffect(() => {
     getSavedMeds()
@@ -220,6 +225,20 @@ export function SearchScreen({ navigation }: Props) {
     [navigation],
   );
 
+  const handleSaveToPlaylist = useCallback((drug: DrugSearchResult) => {
+    setPlaylistModalDrug(drug);
+  }, []);
+
+  const handlePlaylistSaved = useCallback(() => {
+    if (playlistModalDrug) {
+      const next = new Set(savedSetRef.current);
+      next.add(playlistModalDrug.nhi_code);
+      savedSetRef.current = next;
+      setSavedSet(next);
+    }
+    setPlaylistModalDrug(null);
+  }, [playlistModalDrug]);
+
   const renderItem = useCallback(
     ({ item }: { item: DrugSearchResult }) => (
       <DrugCard
@@ -229,9 +248,10 @@ export function SearchScreen({ navigation }: Props) {
         onRemove={handleRemove}
         onPress={handlePress}
         saving={savingNhiCodes.has(item.nhi_code)}
+        onSaveToPlaylist={handleSaveToPlaylist}
       />
     ),
-    [savedSet, handleSave, handleRemove, handlePress, savingNhiCodes],
+    [savedSet, handleSave, handleRemove, handlePress, savingNhiCodes, handleSaveToPlaylist],
   );
 
   const keyExtractor = useCallback((item: DrugSearchResult) => item.nhi_code, []);
@@ -287,6 +307,18 @@ export function SearchScreen({ navigation }: Props) {
           renderItem={renderItem}
         />
       )}
+      <SaveToPlaylistModal
+        visible={playlistModalDrug !== null}
+        drug={playlistModalDrug}
+        onSelectSaved={() => {
+          if (playlistModalDrug) {
+            handleSave(playlistModalDrug);
+          }
+          setPlaylistModalDrug(null);
+        }}
+        onSelectPlaylist={handlePlaylistSaved}
+        onCancel={() => setPlaylistModalDrug(null)}
+      />
     </View>
   );
 }
