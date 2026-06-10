@@ -691,7 +691,7 @@ export function CasePageScreen({ route }: Props) {
       {playlistModalDrugs && playlistModalDrugs.length > 0 ? (
         <SaveToPlaylistModal
           visible
-          drug={playlistModalDrugs[0]}
+          drugs={playlistModalDrugs}
           onSelectSaved={() => setPlaylistModalDrugs(null)}
           onSelectPlaylist={() => setPlaylistModalDrugs(null)}
           onCancel={() => setPlaylistModalDrugs(null)}

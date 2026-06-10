@@ -20,7 +20,8 @@ import { colors, radius, spacing, typography } from '../theme/tokens';
 
 type Props = {
   visible: boolean;
-  drug: DrugSearchResult | null;
+  drug?: DrugSearchResult | null;
+  drugs?: DrugSearchResult[];
   onSelectSaved: () => void;
   onSelectPlaylist: (playlistId: string) => void;
   onCancel: () => void;
@@ -28,7 +29,7 @@ type Props = {
 
 type Step = 'choose' | 'playlists';
 
-export function SaveToPlaylistModal({ visible, drug, onSelectSaved, onSelectPlaylist, onCancel }: Props) {
+export function SaveToPlaylistModal({ visible, drug, drugs, onSelectSaved, onSelectPlaylist, onCancel }: Props) {
   const { t } = useTranslation();
   const [step, setStep] = useState<Step>('choose');
   const [playlists, setPlaylists] = useState<Playlist[]>([]);
@@ -61,10 +62,13 @@ export function SaveToPlaylistModal({ visible, drug, onSelectSaved, onSelectPlay
 
   const handleAddToPlaylist = useCallback(
     async (playlistId: string) => {
-      if (!drug) return;
+      const items = drugs ?? (drug ? [drug] : []);
+      if (items.length === 0) return;
       setAdding(true);
       try {
-        await addToPlaylist(playlistId, drug);
+        for (const d of items) {
+          await addToPlaylist(playlistId, d);
+        }
         onSelectPlaylist(playlistId);
       } catch {
         // silently fail
@@ -72,23 +76,26 @@ export function SaveToPlaylistModal({ visible, drug, onSelectSaved, onSelectPlay
         setAdding(false);
       }
     },
-    [drug, onSelectPlaylist],
+    [drug, drugs, onSelectPlaylist],
   );
 
   const handleCreateAndAdd = useCallback(async () => {
     const trimmed = newName.trim();
-    if (!trimmed || !drug) return;
+    const items = drugs ?? (drug ? [drug] : []);
+    if (!trimmed || items.length === 0) return;
     setCreating(true);
     try {
       const playlist = await createPlaylist(trimmed);
-      await addToPlaylist(playlist.id, drug);
+      for (const d of items) {
+        await addToPlaylist(playlist.id, d);
+      }
       onSelectPlaylist(playlist.id);
     } catch {
       // silently fail
     } finally {
       setCreating(false);
     }
-  }, [newName, drug, onSelectPlaylist]);
+  }, [newName, drug, drugs, onSelectPlaylist]);
 
   const handleChoosePlaylists = useCallback(() => {
     setStep('playlists');
