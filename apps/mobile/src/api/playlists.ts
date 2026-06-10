@@ -32,7 +32,7 @@ export async function getPlaylists(): Promise<Playlist[]> {
 export async function getPlaylistItems(playlistId: string): Promise<PlaylistItem[]> {
   const client = getSupabaseClient();
   const { data, error } = await client.rpc('get_playlist_items', {
-    playlist_id: playlistId,
+    p_playlist_id: playlistId,
   });
   if (error) throw error;
   return data ?? [];
