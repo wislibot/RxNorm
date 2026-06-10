@@ -57,7 +57,7 @@ export async function addToPlaylist(
 ): Promise<void> {
   const client = getSupabaseClient();
   const { error } = await client.rpc('add_to_playlist', {
-    playlist_id: playlistId,
+    p_playlist_id: playlistId,
     p_nhi_code: drug.nhi_code,
     p_name_en: drug.name_en,
     p_name_zh: drug.name_zh,

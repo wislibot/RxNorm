@@ -2,6 +2,8 @@ import React, { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
+  KeyboardAvoidingView,
+  Platform,
   Pressable,
   RefreshControl,
   StyleSheet,
@@ -96,37 +98,42 @@ export function PlaylistsHomeScreen({ navigation }: Props) {
       <Text style={styles.title}>{t('playlistTitle')}</Text>
 
       {showCreate ? (
-        <View style={styles.createRow}>
-          <TextInput
-            autoFocus
-            onChangeText={setNewName}
-            onSubmitEditing={handleCreate}
-            placeholder={t('playlistCreatePrompt')}
-            placeholderTextColor={colors.textMuted}
-            style={styles.createInput}
-            value={newName}
-          />
-          <Pressable
-            disabled={creating || !newName.trim()}
-            onPress={handleCreate}
-            style={({ pressed }) => [styles.createButton, pressed && styles.createButtonPressed]}
-          >
-            {creating ? (
-              <ActivityIndicator color={colors.card} size="small" />
-            ) : (
-              <Ionicons color={colors.card} name="checkmark" size={20} />
-            )}
-          </Pressable>
-          <Pressable
-            onPress={() => {
-              setShowCreate(false);
-              setNewName('');
-            }}
-            style={({ pressed }) => [styles.cancelButton, pressed && styles.cancelButtonPressed]}
-          >
-            <Ionicons color={colors.textMuted} name="close" size={20} />
-          </Pressable>
-        </View>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 40 : 0}
+        >
+          <View style={styles.createRow}>
+            <TextInput
+              autoFocus
+              onChangeText={setNewName}
+              onSubmitEditing={handleCreate}
+              placeholder={t('playlistCreatePrompt')}
+              placeholderTextColor={colors.textMuted}
+              style={styles.createInput}
+              value={newName}
+            />
+            <Pressable
+              disabled={creating || !newName.trim()}
+              onPress={handleCreate}
+              style={({ pressed }) => [styles.createButton, pressed && styles.createButtonPressed]}
+            >
+              {creating ? (
+                <ActivityIndicator color={colors.card} size="small" />
+              ) : (
+                <Ionicons color={colors.card} name="checkmark" size={20} />
+              )}
+            </Pressable>
+            <Pressable
+              onPress={() => {
+                setShowCreate(false);
+                setNewName('');
+              }}
+              style={({ pressed }) => [styles.cancelButton, pressed && styles.cancelButtonPressed]}
+            >
+              <Ionicons color={colors.textMuted} name="close" size={20} />
+            </Pressable>
+          </View>
+        </KeyboardAvoidingView>
       ) : (
         <Pressable
           onPress={() => setShowCreate(true)}
