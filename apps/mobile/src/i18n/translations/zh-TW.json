@@ -180,5 +180,9 @@
   "saveModalCancel": "取消",
   "saveModalAdded": "已加入！",
   "casePageAddAllToPlaylist": "全部加入播放清單",
-  "casePageAddToPlaylist": "加入播放清單"
+  "casePageAddToPlaylist": "加入播放清單",
+  "duplicateAlertTitle": "成分重複",
+  "duplicateAlertMessage": "此播放清單中已有相同成分的其他品牌：{{names}}",
+  "duplicateAlertAddAnyway": "仍然加入",
+  "duplicateAlertCancel": "取消"
 }

@@ -180,5 +180,9 @@
   "saveModalCancel": "Cancel",
   "saveModalAdded": "Added!",
   "casePageAddAllToPlaylist": "Add All to Playlist",
-  "casePageAddToPlaylist": "Add to Playlist"
+  "casePageAddToPlaylist": "Add to Playlist",
+  "duplicateAlertTitle": "Duplicate Ingredients",
+  "duplicateAlertMessage": "You already have another brand with the same ingredients inside this playlist: {{names}}",
+  "duplicateAlertAddAnyway": "Add Anyway",
+  "duplicateAlertCancel": "Cancel"
 }

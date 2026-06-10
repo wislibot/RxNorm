@@ -87,3 +87,24 @@ export async function deletePlaylist(playlistId: string): Promise<void> {
     .eq('id', playlistId);
   if (error) throw error;
 }
+
+export type DuplicateMatch = {
+  id: string;
+  nhi_code: string;
+  name_en: string | null;
+  name_zh: string | null;
+  matching_ingredient: string;
+};
+
+export async function checkPlaylistDuplicates(
+  playlistId: string,
+  nhiCode: string,
+): Promise<DuplicateMatch[]> {
+  const client = getSupabaseClient();
+  const { data, error } = await client.rpc('check_playlist_duplicate_ingredients', {
+    p_playlist_id: playlistId,
+    p_nhi_code: nhiCode,
+  });
+  if (error) throw error;
+  return data ?? [];
+}

@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   FlatList,
   KeyboardAvoidingView,
   Modal,
@@ -14,7 +15,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 
-import { getPlaylists, createPlaylist, addToPlaylist, type Playlist } from '../api/playlists';
+import { getPlaylists, createPlaylist, addToPlaylist, checkPlaylistDuplicates, type Playlist } from '../api/playlists';
 import type { DrugSearchResult } from '../api/drugs';
 import { colors, radius, spacing, typography } from '../theme/tokens';
 
@@ -67,6 +68,24 @@ export function SaveToPlaylistModal({ visible, drug, drugs, onSelectSaved, onSel
       setAdding(true);
       try {
         for (const d of items) {
+          const duplicates = await checkPlaylistDuplicates(playlistId, d.nhi_code);
+          if (duplicates.length > 0) {
+            const uniqueByNhi = new Map(duplicates.map((dup) => [dup.nhi_code, dup]));
+            const names = Array.from(uniqueByNhi.values())
+              .map((dup) => dup.name_en ?? dup.name_zh ?? dup.nhi_code)
+              .join(', ');
+            const confirmed = await new Promise<boolean>((resolve) => {
+              Alert.alert(
+                t('duplicateAlertTitle'),
+                t('duplicateAlertMessage', { names }),
+                [
+                  { text: t('duplicateAlertCancel'), style: 'cancel', onPress: () => resolve(false) },
+                  { text: t('duplicateAlertAddAnyway'), onPress: () => resolve(true) },
+                ],
+              );
+            });
+            if (!confirmed) continue;
+          }
           await addToPlaylist(playlistId, d);
         }
         onSelectPlaylist(playlistId);
@@ -76,7 +95,7 @@ export function SaveToPlaylistModal({ visible, drug, drugs, onSelectSaved, onSel
         setAdding(false);
       }
     },
-    [drug, drugs, onSelectPlaylist],
+    [drug, drugs, onSelectPlaylist, t],
   );
 
   const handleCreateAndAdd = useCallback(async () => {
@@ -87,6 +106,24 @@ export function SaveToPlaylistModal({ visible, drug, drugs, onSelectSaved, onSel
     try {
       const playlist = await createPlaylist(trimmed);
       for (const d of items) {
+        const duplicates = await checkPlaylistDuplicates(playlist.id, d.nhi_code);
+        if (duplicates.length > 0) {
+          const uniqueByNhi = new Map(duplicates.map((dup) => [dup.nhi_code, dup]));
+          const names = Array.from(uniqueByNhi.values())
+            .map((dup) => dup.name_en ?? dup.name_zh ?? dup.nhi_code)
+            .join(', ');
+          const confirmed = await new Promise<boolean>((resolve) => {
+            Alert.alert(
+              t('duplicateAlertTitle'),
+              t('duplicateAlertMessage', { names }),
+              [
+                { text: t('duplicateAlertCancel'), style: 'cancel', onPress: () => resolve(false) },
+                { text: t('duplicateAlertAddAnyway'), onPress: () => resolve(true) },
+              ],
+            );
+          });
+          if (!confirmed) continue;
+        }
         await addToPlaylist(playlist.id, d);
       }
       onSelectPlaylist(playlist.id);
@@ -95,7 +132,7 @@ export function SaveToPlaylistModal({ visible, drug, drugs, onSelectSaved, onSel
     } finally {
       setCreating(false);
     }
-  }, [newName, drug, drugs, onSelectPlaylist]);
+  }, [newName, drug, drugs, onSelectPlaylist, t]);
 
   const handleChoosePlaylists = useCallback(() => {
     setStep('playlists');
