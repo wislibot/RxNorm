@@ -133,5 +133,21 @@
   "homeWelcome": "Patient mode",
   "ocrServerUnavailable": "OCR server unavailable. Please try again later.",
   "ocrServerNotConfigured": "OCR server not configured.",
-  "ocrServerApiKeyNotConfigured": "OCR server API key not configured."
+  "ocrServerApiKeyNotConfigured": "OCR server API key not configured.",
+  "searchTitle": "Drug Search",
+  "searchPlaceholder": "Search by name, ingredient, NHI code, or ATC code",
+  "searchNoResults": "No medications found",
+  "searchError": "Search failed. Please try again.",
+  "searchSaveMed": "Save to My Meds",
+  "searchSaved": "Saved",
+  "savedMedsTitle": "Saved Medications",
+  "savedMedsSubtitle": "Medications you have saved from search",
+  "savedMedsEmpty": "No saved medications yet. Use Search to find and save medications.",
+  "savedMedsRemove": "Remove",
+  "savedMedsNhiCode": "NHI: {{code}}",
+  "savedMedsIngredient": "Ingredient: {{text}}",
+  "savedMedsForm": "Form: {{form}}",
+  "savedMedsStrength": "Strength: {{value}}{{unit}}",
+  "savedMedsAtc": "ATC: {{code}}",
+  "drugDetailTitle": "Drug Details"
 }

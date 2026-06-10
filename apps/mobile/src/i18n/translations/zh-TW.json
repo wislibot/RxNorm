@@ -133,5 +133,21 @@
   "homeWelcome": "病人模式",
   "ocrServerUnavailable": "OCR 伺服器無法使用，請稍後再試。",
   "ocrServerNotConfigured": "尚未設定 OCR 伺服器。",
-  "ocrServerApiKeyNotConfigured": "尚未設定 OCR 伺服器 API 金鑰。"
+  "ocrServerApiKeyNotConfigured": "尚未設定 OCR 伺服器 API 金鑰。",
+  "searchTitle": "藥品搜尋",
+  "searchPlaceholder": "搜尋藥名、成分、健保代碼或ATC代碼",
+  "searchNoResults": "找不到相關藥品",
+  "searchError": "搜尋失敗，請稍後再試",
+  "searchSaveMed": "加入我的藥單",
+  "searchSaved": "已儲存",
+  "savedMedsTitle": "已儲存藥品",
+  "savedMedsSubtitle": "您從搜尋中儲存的藥品",
+  "savedMedsEmpty": "尚無已儲存的藥品。使用搜尋功能來尋找並儲存藥品。",
+  "savedMedsRemove": "移除",
+  "savedMedsNhiCode": "健保代碼：{{code}}",
+  "savedMedsIngredient": "成分：{{text}}",
+  "savedMedsForm": "劑型：{{form}}",
+  "savedMedsStrength": "含量：{{value}}{{unit}}",
+  "savedMedsAtc": "ATC：{{code}}",
+  "drugDetailTitle": "藥品詳情"
 }

@@ -16,6 +16,7 @@ import type { ScanStackParamList } from '../scan/types';
 import { CareTeamsScreen } from '../screens/CareTeamsScreen';
 import { HomeScanScreen } from '../screens/HomeScanScreen';
 import { MyMedsScreen } from '../screens/MyMedsScreen';
+import { SavedMedsScreen } from '../screens/SavedMedsScreen';
 import { SearchScreen } from '../screens/SearchScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
 import { colors } from '../theme/tokens';
@@ -71,6 +72,7 @@ function MyMedsNavigator() {
       <MyMedsStack.Screen component={MyMedsScreen} name="MyMedsHome" options={{ headerShown: false }} />
       <MyMedsStack.Screen component={CaseHistoryScreen} name="CaseHistory" options={{ title: t('scanHistoryTitle') }} />
       <MyMedsStack.Screen component={CasePageScreen} name="CasePage" options={{ title: t('casePageTitle') }} />
+      <MyMedsStack.Screen component={SavedMedsScreen} name="SavedMeds" options={{ title: t('savedMedsTitle') }} />
     </MyMedsStack.Navigator>
   );
 }

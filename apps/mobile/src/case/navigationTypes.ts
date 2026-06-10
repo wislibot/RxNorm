@@ -6,4 +6,5 @@ export type MyMedsStackParamList = {
   MyMedsHome: undefined;
   CaseHistory: undefined;
   CasePage: CasePageParams;
+  SavedMeds: undefined;
 };
