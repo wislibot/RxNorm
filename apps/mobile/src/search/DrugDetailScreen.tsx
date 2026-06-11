@@ -8,10 +8,11 @@ import {
   Text,
   View,
 } from 'react-native';
-import type { RouteProp } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
+import type { RouteProp } from '@react-navigation/native';
 
+import { useAuth } from '../auth/AuthProvider';
 import { getDrugDetail, saveMed, type DrugDetail, type DrugSearchResult } from '../api/drugs';
 import { colors, radius, spacing, typography } from '../theme/tokens';
 import type { SearchStackParamList } from './navigationTypes';
@@ -37,6 +38,7 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
 
 export function DrugDetailScreen({ route }: Props) {
   const { t } = useTranslation();
+  const { isStaffUser } = useAuth();
   const { nhiCode } = route.params;
   const [drug, setDrug] = useState<DrugDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -125,26 +127,28 @@ export function DrugDetailScreen({ route }: Props) {
       <View style={styles.header}>
         {drug.name_zh ? <Text style={styles.nameZh}>{drug.name_zh}</Text> : null}
         {drug.name_en ? <Text style={styles.nameEn}>{drug.name_en}</Text> : null}
-        <Pressable
-          onPress={() => {
-            if (saved) return;
-            setShowSaveModal(true);
-          }}
-          style={({ pressed }) => [
-            styles.saveButton,
-            saved && styles.saveButtonSaved,
-            pressed && styles.saveButtonPressed,
-          ]}
-        >
-          <Ionicons
-            color={saved ? colors.card : colors.primary}
-            name={saved ? 'bookmark' : 'bookmark-outline'}
-            size={20}
-          />
-          <Text style={[styles.saveButtonText, saved && styles.saveButtonTextSaved]}>
-            {saved ? t('searchSaved') : t('searchSaveMed')}
-          </Text>
-        </Pressable>
+        {!isStaffUser && (
+          <Pressable
+            onPress={() => {
+              if (saved) return;
+              setShowSaveModal(true);
+            }}
+            style={({ pressed }) => [
+              styles.saveButton,
+              saved && styles.saveButtonSaved,
+              pressed && styles.saveButtonPressed,
+            ]}
+          >
+            <Ionicons
+              color={saved ? colors.card : colors.primary}
+              name={saved ? 'bookmark' : 'bookmark-outline'}
+              size={20}
+            />
+            <Text style={[styles.saveButtonText, saved && styles.saveButtonTextSaved]}>
+              {saved ? t('searchSaved') : t('searchSaveMed')}
+            </Text>
+          </Pressable>
+        )}
       </View>
 
       {/* Core Info */}
@@ -192,7 +196,7 @@ export function DrugDetailScreen({ route }: Props) {
         </Pressable>
       ) : null}
 
-      {drugSearchResult ? (
+      {!isStaffUser && drugSearchResult ? (
         <SaveToPlaylistModal
           visible={showSaveModal}
           drug={drugSearchResult}
