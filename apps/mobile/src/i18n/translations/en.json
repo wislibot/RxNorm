@@ -233,5 +233,22 @@
   "staff.records.noMedications": "No medications in this case",
   "staff.records.noDrugs": "No drugs in this list",
   "staff.records.loadError": "Failed to load details",
-  "staff.hospitals.noHospitals": "No hospitals assigned"
+  "staff.hospitals.noHospitals": "No hospitals assigned",
+
+  "staff.search.title": "Drug Search",
+  "staff.search.textSearch": "Text Search",
+  "staff.search.browseATC": "Browse ATC",
+  "staff.search.placeholder": "Search by name, ingredient, NHI code, or ATC...",
+  "staff.search.noResults": "No results found",
+  "staff.search.hint": "Search for drugs by name, ingredient, NHI code, or ATC classification",
+  "staff.search.unknownIngredient": "Unknown ingredient",
+  "staff.search.moreBrands": "more brands",
+  "staff.search.atcEntryTitle": "ATC Classification Browser",
+  "staff.search.atcEntryHint": "Browse the WHO Anatomical Therapeutic Chemical classification system to find drugs by category",
+  "staff.search.startBrowsing": "Start Browsing",
+
+  "staff.atc.root": "ATC",
+  "staff.atc.drugs": "drugs",
+  "staff.atc.noDrugs": "No drugs in this category",
+  "staff.atc.noCategories": "No subcategories found"
 }

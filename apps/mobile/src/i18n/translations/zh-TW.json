@@ -233,5 +233,22 @@
   "staff.records.noMedications": "此案例無藥物資料",
   "staff.records.noDrugs": "此清單無藥品資料",
   "staff.records.loadError": "載入失敗",
-  "staff.hospitals.noHospitals": "尚未分配醫院"
+  "staff.hospitals.noHospitals": "尚未分配醫院",
+
+  "staff.search.title": "藥品搜尋",
+  "staff.search.textSearch": "文字搜尋",
+  "staff.search.browseATC": "瀏覽 ATC",
+  "staff.search.placeholder": "搜尋藥名、成分、健保代碼或 ATC...",
+  "staff.search.noResults": "找不到結果",
+  "staff.search.hint": "透過藥名、成分、健保代碼或 ATC 分類搜尋藥品",
+  "staff.search.unknownIngredient": "未知成分",
+  "staff.search.moreBrands": "更多品牌",
+  "staff.search.atcEntryTitle": "ATC 分類瀏覽器",
+  "staff.search.atcEntryHint": "瀏覽 WHO 解剖治療化學分類系統，依分類查找藥品",
+  "staff.search.startBrowsing": "開始瀏覽",
+
+  "staff.atc.root": "ATC",
+  "staff.atc.drugs": "種藥品",
+  "staff.atc.noDrugs": "此分類無藥品",
+  "staff.atc.noCategories": "無子分類"
 }
