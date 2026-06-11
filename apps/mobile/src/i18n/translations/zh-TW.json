@@ -204,6 +204,7 @@
   "hospitalDetailScanHistory": "掃描紀錄",
   "hospitalDetailDruglists": "藥品清單",
   "hospitalDetailNoCases": "尚無掃描紀錄",
+  "hospitalDetailUntitled": "未命名掃描",
   "hospitalDetailNoDruglists": "尚無藥品清單",
   "casePageShareButton": "分享"
 }

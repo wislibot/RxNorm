@@ -111,14 +111,23 @@ export function HospitalDetailScreen({ route, navigation }: Props) {
   const getMedicationName = (item: CaseSummary): string => {
     const medicationName = item.ocr_sections?.case_fields?.medicationName;
     if (medicationName) return medicationName;
-    const firstLine = item.ocr_sections?.medicationLines?.[0];
-    if (firstLine) return firstLine;
-    return t('casePageCreatedPlaceholder');
+    const medicationLines = item.ocr_sections?.medicationLines;
+    if (Array.isArray(medicationLines) && medicationLines.length > 0) {
+      const first = medicationLines[0];
+      if (typeof first === 'string') return first;
+      if (first?.text) return first.text;
+    }
+    const detectedItems = item.ocr_sections?.detectedItems;
+    if (Array.isArray(detectedItems) && detectedItems.length > 0) {
+      const name = detectedItems[0]?.displayName || detectedItems[0]?.rawText;
+      if (name) return name;
+    }
+    return t('hospitalDetailUntitled');
   };
 
   const formatDate = (dateStr: string): string => {
     try {
-      return new Date(dateStr).toLocaleDateString();
+      return new Date(dateStr).toLocaleString();
     } catch {
       return dateStr;
     }

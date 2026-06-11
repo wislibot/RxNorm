@@ -204,6 +204,7 @@
   "hospitalDetailScanHistory": "Scan History",
   "hospitalDetailDruglists": "Druglists",
   "hospitalDetailNoCases": "No scan history yet",
+  "hospitalDetailUntitled": "Untitled Scan",
   "hospitalDetailNoDruglists": "No druglists yet",
   "casePageShareButton": "Share"
 }
