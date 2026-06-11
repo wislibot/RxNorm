@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -9,7 +9,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 
@@ -52,6 +52,25 @@ export function CareTeamsScreen() {
     useCallback(() => {
       loadMyHospitals();
     }, [loadMyHospitals])
+  );
+
+  // Refresh when the already-active tab is tapped
+  const navigation = useNavigation<any>();
+  const isFocusedRef = useRef(false);
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('tabPress', () => {
+      if (isFocusedRef.current) {
+        loadMyHospitals();
+      }
+    });
+    return unsubscribe;
+  }, [navigation, loadMyHospitals]);
+
+  useFocusEffect(
+    useCallback(() => {
+      isFocusedRef.current = true;
+      return () => { isFocusedRef.current = false; };
+    }, [])
   );
 
   useEffect(() => {
