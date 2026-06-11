@@ -41,3 +41,24 @@ export async function browseATCDrugs(atcPrefix: string, maxResults = 100): Promi
   if (error) throw error;
   return data ?? [];
 }
+
+export interface BrandItem {
+  nhi_code: string;
+  name_en: string | null;
+  name_zh: string | null;
+  dose_form: string | null;
+  strength_value: number | null;
+  strength_unit: string | null;
+  price_nhi: number | null;
+}
+
+export async function getBrandsForIngredient(atcPrefix: string, ingredient: string, maxResults = 200): Promise<BrandItem[]> {
+  const client = getSupabaseClient();
+  const { data, error } = await client.rpc('get_brands_for_ingredient', {
+    p_atc_prefix: atcPrefix,
+    p_ingredient: ingredient,
+    p_max_results: maxResults,
+  });
+  if (error) throw error;
+  return data ?? [];
+}

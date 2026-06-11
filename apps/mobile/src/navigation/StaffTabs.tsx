@@ -10,6 +10,7 @@ import { StaffCaseDetailScreen } from '../staff/StaffCaseDetailScreen';
 import { StaffDruglistDetailScreen } from '../staff/StaffDruglistDetailScreen';
 import { StaffSearchScreen } from '../staff/StaffSearchScreen';
 import { ATCBrowserScreen } from '../staff/ATCBrowserScreen';
+import { BrandListScreen } from '../staff/BrandListScreen';
 import { StaffMyHospitalsScreen } from '../staff/StaffMyHospitalsScreen';
 import { DrugDetailScreen } from '../search/DrugDetailScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
@@ -51,6 +52,7 @@ function StaffRecordsNavigator() {
 type StaffSearchStackParamList = {
   StaffSearchHome: undefined;
   ATCBrowser: { prefix: string; title: string };
+  BrandList: { atcPrefix: string; ingredient: string; atcCode: string | null; atcName: string | null };
   DrugDetail: { nhiCode: string };
 };
 const SearchStack = createNativeStackNavigator<StaffSearchStackParamList>();
@@ -67,6 +69,11 @@ function StaffSearchNavigator() {
         component={ATCBrowserScreen}
         name="ATCBrowser"
         options={({ route }) => ({ title: route.params.title })}
+      />
+      <SearchStack.Screen
+        component={BrandListScreen}
+        name="BrandList"
+        options={({ route }) => ({ title: route.params.ingredient })}
       />
       <SearchStack.Screen component={DrugDetailScreen} name="DrugDetail" options={{ title: t('drugDetailTitle') }} />
     </SearchStack.Navigator>

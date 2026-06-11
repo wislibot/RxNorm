@@ -250,5 +250,8 @@
   "staff.atc.root": "ATC",
   "staff.atc.drugs": "種藥品",
   "staff.atc.noDrugs": "此分類無藥品",
-  "staff.atc.noCategories": "無子分類"
+  "staff.atc.noCategories": "無子分類",
+
+  "staff.brands.totalBrands": "種品牌",
+  "staff.brands.noBrands": "無品牌資料"
 }

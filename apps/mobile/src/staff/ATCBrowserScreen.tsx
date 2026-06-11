@@ -13,6 +13,7 @@ type Breadcrumb = { prefix: string; title: string };
 type StaffSearchStackParamList = {
   StaffSearchHome: undefined;
   ATCBrowser: { prefix: string; title: string };
+  BrandList: { atcPrefix: string; ingredient: string; atcCode: string | null; atcName: string | null };
   DrugDetail: { nhiCode: string };
 };
 
@@ -81,7 +82,17 @@ export function ATCBrowserScreen() {
   );
 
   const renderConceptGroup = ({ item }: { item: ConceptGroup }) => (
-    <View style={styles.conceptCard}>
+    <Pressable
+      style={styles.conceptCard}
+      onPress={() => {
+        navigation.navigate('BrandList', {
+          atcPrefix: currentPrefix,
+          ingredient: item.ingredient,
+          atcCode: item.atc_code,
+          atcName: item.atc_name,
+        });
+      }}
+    >
       <View style={styles.conceptHeader}>
         <Text style={styles.ingredientName} numberOfLines={2}>
           {item.ingredient || t('staff.search.unknownIngredient')}
@@ -99,25 +110,17 @@ export function ATCBrowserScreen() {
       {item.brand_names.length > 0 && (
         <View style={styles.brandsList}>
           {item.brand_names.slice(0, 3).map((name, i) => (
-            <Pressable
-              key={item.sample_nhi_codes[i] || i}
-              style={styles.brandRow}
-              onPress={() => {
-                if (item.sample_nhi_codes[i]) {
-                  navigation.navigate('DrugDetail', { nhiCode: item.sample_nhi_codes[i] });
-                }
-              }}
-            >
+            <View key={item.sample_nhi_codes[i] || i} style={styles.brandRow}>
               <Ionicons name="chevron-forward" size={14} color={colors.textMuted} />
               <Text style={styles.brandName} numberOfLines={1}>{name}</Text>
-            </Pressable>
+            </View>
           ))}
           {item.brand_count > 3 && (
             <Text style={styles.moreBrands}>+{item.brand_count - 3} {t('staff.search.moreBrands')}</Text>
           )}
         </View>
       )}
-    </View>
+    </Pressable>
   );
 
   return (

@@ -250,5 +250,8 @@
   "staff.atc.root": "ATC",
   "staff.atc.drugs": "drugs",
   "staff.atc.noDrugs": "No drugs in this category",
-  "staff.atc.noCategories": "No subcategories found"
+  "staff.atc.noCategories": "No subcategories found",
+
+  "staff.brands.totalBrands": "total brands",
+  "staff.brands.noBrands": "No brands found"
 }
