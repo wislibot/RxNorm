@@ -215,5 +215,23 @@
   "caseDelete": "刪除",
   "caseDeleteConfirm": "確定要刪除此案例嗎？",
   "caseDeleted": "案例已刪除",
-  "caseUntitled": "未命名掃描"
+  "caseUntitled": "未命名掃描",
+
+  "staff.tabs.records": "病患紀錄",
+  "staff.tabs.hospitals": "我的醫院",
+  "staff.records.cases": "用藥紀錄",
+  "staff.records.druglists": "藥品清單",
+  "staff.records.noCases": "尚無分享的用藥紀錄",
+  "staff.records.noDruglists": "尚無分享的藥品清單",
+  "staff.records.unnamedCase": "未命名案例",
+  "staff.records.medications": "種藥物",
+  "staff.records.drugs": "種藥品",
+  "staff.records.patient": "病患",
+  "staff.records.status": "狀態",
+  "staff.records.ingredient": "成分",
+  "staff.records.strength": "劑量",
+  "staff.records.noMedications": "此案例無藥物資料",
+  "staff.records.noDrugs": "此清單無藥品資料",
+  "staff.records.loadError": "載入失敗",
+  "staff.hospitals.noHospitals": "尚未分配醫院"
 }

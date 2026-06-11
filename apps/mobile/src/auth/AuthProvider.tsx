@@ -3,6 +3,7 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useS
 import type { AppLanguage } from '../lib/i18n';
 import { getSupabaseClient, type AppSupabaseClient, type AuthSession, type AuthUser } from '../lib/supabase';
 import { PREFERRED_LANGUAGE_KEY, secureStoreStorage, type AppStorage } from '../lib/storage';
+import { isStaff, getStaffHospitals, type StaffHospital } from '../api/staff';
 
 type AuthContextValue = {
   isLoading: boolean;
@@ -10,6 +11,8 @@ type AuthContextValue = {
   user: AuthUser;
   preferredLanguage: AppLanguage | null;
   needsLanguageSelection: boolean;
+  isStaffUser: boolean;
+  staffHospitals: StaffHospital[];
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string) => Promise<{ requiresEmailVerification: boolean }>;
   signOut: () => Promise<void>;
@@ -43,6 +46,8 @@ export function AuthProvider({ children, client = getSupabaseClient(), storage =
   const [user, setUser] = useState<AuthUser>(null);
   const [preferredLanguage, setPreferredLanguageState] = useState<AppLanguage | null>(null);
   const [needsLanguageSelection, setNeedsLanguageSelection] = useState(false);
+  const [isStaffUser, setIsStaffUser] = useState(false);
+  const [staffHospitals, setStaffHospitals] = useState<StaffHospital[]>([]);
   const syncSessionState = useCallback(
     async (nextSession: AuthSession) => {
       const nextUser = nextSession?.user ?? null;
@@ -51,6 +56,27 @@ export function AuthProvider({ children, client = getSupabaseClient(), storage =
       setUser(nextUser);
       setPreferredLanguageState(language);
       setNeedsLanguageSelection(Boolean(nextUser) && !language);
+
+      // Detect staff role
+      if (nextUser) {
+        try {
+          const staff = await isStaff();
+          setIsStaffUser(staff);
+          if (staff) {
+            const hospitals = await getStaffHospitals();
+            setStaffHospitals(hospitals);
+          } else {
+            setStaffHospitals([]);
+          }
+        } catch {
+          setIsStaffUser(false);
+          setStaffHospitals([]);
+        }
+      } else {
+        setIsStaffUser(false);
+        setStaffHospitals([]);
+      }
+
       setIsLoading(false);
     },
     [storage],
@@ -84,6 +110,8 @@ export function AuthProvider({ children, client = getSupabaseClient(), storage =
       user,
       preferredLanguage,
       needsLanguageSelection,
+      isStaffUser,
+      staffHospitals,
       async signIn(email, password) {
         setIsLoading(true);
         const { data, error } = await client.auth.signInWithPassword({ email, password });
@@ -113,6 +141,8 @@ export function AuthProvider({ children, client = getSupabaseClient(), storage =
         }
         setPreferredLanguageState(null);
         setNeedsLanguageSelection(false);
+        setIsStaffUser(false);
+        setStaffHospitals([]);
         setIsLoading(false);
       },
       async setPreferredLanguage(language) {
@@ -129,7 +159,7 @@ export function AuthProvider({ children, client = getSupabaseClient(), storage =
         setNeedsLanguageSelection(false);
       },
     }),
-    [client, isLoading, needsLanguageSelection, preferredLanguage, session, storage, syncSessionState, user],
+    [client, isLoading, isStaffUser, needsLanguageSelection, preferredLanguage, session, staffHospitals, storage, syncSessionState, user],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

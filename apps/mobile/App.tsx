@@ -9,6 +9,7 @@ import { LoginScreen } from './src/auth/LoginScreen';
 import { SignupScreen } from './src/auth/SignupScreen';
 import { setLanguage } from './src/lib/i18n';
 import { PatientTabs } from './src/navigation/PatientTabs';
+import { StaffTabs } from './src/navigation/StaffTabs';
 import { LanguagePickerScreen } from './src/settings/LanguagePickerScreen';
 import { colors, typography } from './src/theme/tokens';
 
@@ -17,7 +18,7 @@ export function shouldUseDevWebBypass(isDev: boolean, platform: string) {
 }
 
 function PatientRoot() {
-  const { isLoading, needsLanguageSelection, preferredLanguage, session } = useAuth();
+  const { isLoading, isStaffUser, needsLanguageSelection, preferredLanguage, session } = useAuth();
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
   const [isDevPreviewMode, setIsDevPreviewMode] = useState(false);
   const canUseDevBypass = shouldUseDevWebBypass(__DEV__, Platform.OS);
@@ -59,7 +60,7 @@ function PatientRoot() {
     return <LanguagePickerScreen />;
   }
 
-  return <PatientTabs />;
+  return isStaffUser ? <StaffTabs /> : <PatientTabs />;
 }
 
 export default function App() {
