@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Modal, Pressable, StyleSheet, Switch, Text, View } from 'react-native';
+import { ActivityIndicator, Modal, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
 import { getMyHospitals, type Hospital } from '../api/hospitals';
@@ -77,9 +77,6 @@ export function ShareHospitalModal({ visible, recordType, recordId, onClose }: P
       <View style={styles.modal}>
         <View style={styles.modalHeader}>
           <Text style={styles.modalTitle}>{t('shareModalTitle')}</Text>
-          <Pressable onPress={onClose} hitSlop={8} style={({ pressed }) => [styles.doneButton, pressed && styles.doneButtonPressed]}>
-            <Text style={styles.modalDoneText}>{t('shareModalDone')}</Text>
-          </Pressable>
         </View>
         {loading ? (
           <View style={styles.center}>
@@ -90,7 +87,7 @@ export function ShareHospitalModal({ visible, recordType, recordId, onClose }: P
             <Text style={styles.emptyText}>{t('careTeamsNoHospitals')}</Text>
           </View>
         ) : (
-          <View style={styles.list}>
+          <ScrollView style={styles.scrollArea} contentContainerStyle={styles.list}>
             {hospitals.map((hospital) => {
               const isShared = sharedIds.has(hospital.id);
               return (
@@ -113,8 +110,13 @@ export function ShareHospitalModal({ visible, recordType, recordId, onClose }: P
                 </View>
               );
             })}
-          </View>
+          </ScrollView>
         )}
+        <View style={styles.footer}>
+          <Pressable onPress={onClose} style={({ pressed }) => [styles.doneButton, pressed && styles.doneButtonPressed]}>
+            <Text style={styles.modalDoneText}>{t('shareModalDone')}</Text>
+          </Pressable>
+        </View>
       </View>
     </Modal>
   );
@@ -138,11 +140,10 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   doneButton: {
-    alignSelf: 'flex-end',
+    alignItems: 'center',
     backgroundColor: colors.primary,
     borderRadius: radius.lg,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
+    paddingVertical: spacing.md,
   },
   doneButtonPressed: {
     opacity: 0.8,
@@ -151,6 +152,9 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: typography.body,
     fontWeight: '600',
+  },
+  scrollArea: {
+    flex: 1,
   },
   center: {
     alignItems: 'center',
@@ -199,5 +203,10 @@ const styles = StyleSheet.create({
   toggleLabel: {
     color: colors.textMuted,
     fontSize: typography.label,
+  },
+  footer: {
+    borderTopColor: colors.border,
+    borderTopWidth: 1,
+    padding: spacing.lg,
   },
 });
