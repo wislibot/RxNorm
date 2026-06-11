@@ -1,4 +1,4 @@
-import { getSupabaseClient } from '../lib/supabase';
+import { getSupabaseClient, type AppSupabaseClient } from '../lib/supabase';
 import type { DrugSearchResult } from './drugs';
 
 export type Playlist = {
@@ -27,6 +27,27 @@ export async function getPlaylists(): Promise<Playlist[]> {
   const { data, error } = await client.rpc('get_user_playlists');
   if (error) throw error;
   return data ?? [];
+}
+
+export async function getPlaylistIngredientIds(
+  playlistId: string,
+  client: AppSupabaseClient = getSupabaseClient(),
+): Promise<string[]> {
+  const { data: items, error: itemsError } = await client
+    .rpc('get_playlist_items', { p_playlist_id: playlistId });
+  if (itemsError) throw itemsError;
+
+  const nhiCodes = (items ?? []).map((item: any) => item.nhi_code).filter(Boolean) as string[];
+  if (!nhiCodes.length) return [];
+
+  const { data: piRows, error: piError } = await client
+    .from('rx_product_ingredients')
+    .select('ingredient_id')
+    .in('nhi_code', nhiCodes);
+  if (piError) throw piError;
+
+  const ids = (piRows ?? []).map((r: any) => r.ingredient_id).filter(Boolean) as string[];
+  return Array.from(new Set(ids));
 }
 
 export async function getPlaylistItems(playlistId: string): Promise<PlaylistItem[]> {

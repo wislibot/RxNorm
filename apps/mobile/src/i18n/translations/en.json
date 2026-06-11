@@ -181,6 +181,8 @@
   "saveModalAdded": "Added!",
   "casePageAddAllToPlaylist": "Add All to Druglist",
   "casePageAddToPlaylist": "Add to Druglist",
+  "playlistDdiButton": "DDI Check",
+  "playlistDdiLoading": "Checking interactions...",
   "duplicateAlertTitle": "Duplicate Ingredients",
   "duplicateAlertMessage": "You already have another brand with the same ingredients inside this druglist: {{names}}",
   "duplicateAlertAddAnyway": "Add Anyway",

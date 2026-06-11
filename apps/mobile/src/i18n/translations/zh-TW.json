@@ -181,6 +181,8 @@
   "saveModalAdded": "已加入！",
   "casePageAddAllToPlaylist": "全部加入藥品清單",
   "casePageAddToPlaylist": "加入藥品清單",
+  "playlistDdiButton": "藥物交互檢查",
+  "playlistDdiLoading": "正在檢查交互作用...",
   "duplicateAlertTitle": "成分重複",
   "duplicateAlertMessage": "此藥品清單中已有相同成分的其他品牌：{{names}}",
   "duplicateAlertAddAnyway": "仍然加入",
