@@ -195,5 +195,15 @@
   "careTeamsNoHospitals": "No hospitals added yet. Search to find and add hospitals.",
   "careTeamsTypeToSearch": "Type to search for hospitals",
   "careTeamsAdded": "Added!",
-  "careTeamsAlreadyAdded": "Already added"
+  "careTeamsAlreadyAdded": "Already added",
+  "shareWithHospitals": "Share with Hospitals",
+  "shareModalTitle": "Choose hospitals to share with",
+  "shareModalDone": "Done",
+  "shareToggleOn": "Shared",
+  "shareToggleOff": "Not shared",
+  "hospitalDetailScanHistory": "Scan History",
+  "hospitalDetailDruglists": "Druglists",
+  "hospitalDetailNoCases": "No scan history yet",
+  "hospitalDetailNoDruglists": "No druglists yet",
+  "casePageShareButton": "Share"
 }

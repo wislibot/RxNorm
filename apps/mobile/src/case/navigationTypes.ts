@@ -11,3 +11,8 @@ export type MyMedsStackParamList = {
   PlaylistDetail: { playlistId: string; playlistName: string };
   DrugDetail: { nhiCode: string };
 };
+
+export type CareTeamsStackParamList = {
+  CareTeamsHome: undefined;
+  HospitalDetail: { hospitalId: string; hospitalNameZh: string; hospitalNameEn: string };
+};

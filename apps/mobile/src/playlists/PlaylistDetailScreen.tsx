@@ -26,6 +26,7 @@ import type { MyMedsStackParamList } from '../case/navigationTypes';
 import { colors, radius, spacing, typography } from '../theme/tokens';
 import type { CaseDdiInteraction, CaseDdiResult } from '../types/ddi';
 import { DeletePlaylistConfirm } from './DeletePlaylistConfirm';
+import { ShareHospitalModal } from '../careteams/ShareHospitalModal';
 import { getSupabaseClient } from '../lib/supabase';
 
 type Props = {
@@ -44,6 +45,7 @@ export function PlaylistDetailScreen({ route, navigation }: Props) {
   const [ddiResult, setDdiResult] = useState<CaseDdiResult | null>(null);
   const [ddiLoading, setDdiLoading] = useState(false);
   const [ddiVisible, setDdiVisible] = useState(false);
+  const [shareModalVisible, setShareModalVisible] = useState(false);
 
   const load = useCallback(async (pullRefresh = false) => {
     if (pullRefresh) setRefreshing(true);
@@ -181,6 +183,12 @@ export function PlaylistDetailScreen({ route, navigation }: Props) {
             <Ionicons color={colors.primary} name="shield-checkmark-outline" size={20} />
           </Pressable>
           <Pressable
+            onPress={() => setShareModalVisible(true)}
+            style={({ pressed }) => [styles.ddiButton, pressed && styles.ddiButtonPressed]}
+          >
+            <Ionicons color={colors.primary} name="share-outline" size={20} />
+          </Pressable>
+          <Pressable
             onPress={() => setDeleteVisible(true)}
             style={({ pressed }) => [styles.deleteButton, pressed && styles.deleteButtonPressed]}
           >
@@ -219,6 +227,13 @@ export function PlaylistDetailScreen({ route, navigation }: Props) {
         visible={deleteVisible}
         onConfirm={handleDelete}
         onCancel={() => setDeleteVisible(false)}
+      />
+
+      <ShareHospitalModal
+        visible={shareModalVisible}
+        recordType="druglist"
+        recordId={playlistId}
+        onClose={() => setShareModalVisible(false)}
       />
 
       <Modal

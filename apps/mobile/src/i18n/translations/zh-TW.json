@@ -195,5 +195,15 @@
   "careTeamsNoHospitals": "尚未新增醫院。搜尋並新增您就診的醫院。",
   "careTeamsTypeToSearch": "輸入關鍵字搜尋醫院",
   "careTeamsAdded": "已新增！",
-  "careTeamsAlreadyAdded": "已新增過"
+  "careTeamsAlreadyAdded": "已新增過",
+  "shareWithHospitals": "分享至醫院",
+  "shareModalTitle": "選擇要分享的醫院",
+  "shareModalDone": "完成",
+  "shareToggleOn": "已分享",
+  "shareToggleOff": "未分享",
+  "hospitalDetailScanHistory": "掃描紀錄",
+  "hospitalDetailDruglists": "藥品清單",
+  "hospitalDetailNoCases": "尚無掃描紀錄",
+  "hospitalDetailNoDruglists": "尚無藥品清單",
+  "casePageShareButton": "分享"
 }

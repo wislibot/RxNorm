@@ -126,7 +126,16 @@ export function CareTeamsScreen() {
 
   const renderHospitalCard = useCallback(
     ({ item }: { item: Hospital }) => (
-      <View style={styles.card}>
+      <Pressable
+        onPress={() =>
+          navigation.navigate('HospitalDetail', {
+            hospitalId: item.id,
+            hospitalNameZh: item.name_zh,
+            hospitalNameEn: item.name_en,
+          })
+        }
+        style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
+      >
         <View style={styles.cardContent}>
           <Text style={styles.cardTitleZh}>{item.name_zh}</Text>
           <Text style={styles.cardTitleEn}>{item.name_en}</Text>
@@ -143,9 +152,9 @@ export function CareTeamsScreen() {
         >
           <Ionicons color={colors.textMuted} name="close-circle" size={24} />
         </Pressable>
-      </View>
+      </Pressable>
     ),
-    [handleRemove],
+    [handleRemove, navigation],
   );
 
   const renderSearchResultCard = useCallback(
@@ -375,5 +384,8 @@ const styles = StyleSheet.create({
   list: {
     gap: spacing.md,
     paddingBottom: spacing.xl,
+  },
+  cardPressed: {
+    opacity: 0.8,
   },
 });

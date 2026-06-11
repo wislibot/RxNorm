@@ -4,13 +4,14 @@ import type { RouteProp } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 
-import { getCase, getCaseGroupCases, getMockAutoShareStatus } from '../api/case';
+import { getCase, getCaseGroupCases } from '../api/case';
 import { getCaseDdiByIngredients } from '../api/ddi';
 import { addToPlaylist } from '../api/playlists';
 import type { DrugSearchResult } from '../api/drugs';
 import { SaveToPlaylistModal } from '../playlists/SaveToPlaylistModal';
+import { ShareHospitalModal } from '../careteams/ShareHospitalModal';
 import type { CasePageParams } from './navigationTypes';
-import type { AutoShareStatus, CaseRecord, DetectedItem } from '../types/case';
+import type { CaseRecord, DetectedItem } from '../types/case';
 import type { CaseDdiInteraction, CaseDdiResult } from '../types/ddi';
 import { colors, radius, spacing, typography } from '../theme/tokens';
 import { normalizeOcrEnglishSpacing } from '../ocr/normalizeOcrEnglish';
@@ -129,7 +130,7 @@ export function CasePageScreen({ route }: Props) {
   const { t } = useTranslation();
   const { caseId } = route.params;
   const [caseRecord, setCaseRecord] = useState<CaseRecord | null>(null);
-  const [autoShareStatus, setAutoShareStatus] = useState<AutoShareStatus | null>(null);
+  const [shareModalVisible, setShareModalVisible] = useState(false);
   const [ddiResult, setDdiResult] = useState<CaseDdiResult | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
@@ -145,10 +146,7 @@ export function CasePageScreen({ route }: Props) {
       setLoadError('');
 
       try {
-        const [loadedCase, shareStatus] = await Promise.all([
-          getCase(caseId),
-          getMockAutoShareStatus(),
-        ]);
+        const loadedCase = await getCase(caseId);
 
         let mergedCase = loadedCase;
 
@@ -189,7 +187,6 @@ export function CasePageScreen({ route }: Props) {
         }
 
         setCaseRecord(mergedCase);
-        setAutoShareStatus(shareStatus);
         setDdiResult(ddi);
       } catch {
         if (!isMounted) {
@@ -209,12 +206,6 @@ export function CasePageScreen({ route }: Props) {
       isMounted = false;
     };
   }, [caseId, t]);
-
-  const shareCountText = useMemo(() => {
-    return t('casePageSharedToCount', {
-      count: autoShareStatus?.sharedCareTeamCount ?? 0,
-    });
-  }, [autoShareStatus?.sharedCareTeamCount, t]);
 
   const medicationGroups = useMemo(
     () => groupDetectedItemsForDisplay(caseRecord?.detectedItems ?? []),
@@ -645,13 +636,13 @@ export function CasePageScreen({ route }: Props) {
 
         {renderPhotoStrip()}
 
-        <View style={styles.card}>
-          <Text style={styles.sectionTitle}>{t('casePageAutoShareTitle')}</Text>
-          <Text style={styles.body}>
-            {caseRecord.shareToAllCareTeams ? t('casePageAutoShareDefaultOn') : t('casePageAutoShareDefaultOff')}
-          </Text>
-          <Text style={styles.subtitle}>{shareCountText}</Text>
-        </View>
+        <Pressable
+          onPress={() => setShareModalVisible(true)}
+          style={({ pressed }) => [styles.playlistButton, pressed && styles.playlistButtonPressed]}
+        >
+          <Ionicons color={colors.primary} name="share-outline" size={20} />
+          <Text style={styles.playlistButtonText}>{t('casePageShareButton')}</Text>
+        </Pressable>
 
       {caseRecord.ocrSections.instructionLines.length > 0 ? (
         <View style={styles.card}>
@@ -697,6 +688,12 @@ export function CasePageScreen({ route }: Props) {
           onCancel={() => setPlaylistModalDrugs(null)}
         />
       ) : null}
+      <ShareHospitalModal
+        visible={shareModalVisible}
+        recordType="case"
+        recordId={caseId}
+        onClose={() => setShareModalVisible(false)}
+      />
     </>
   );
 }

@@ -6,7 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 
 import { CaseHistoryScreen } from '../case/CaseHistoryScreen';
-import type { MyMedsStackParamList } from '../case/navigationTypes';
+import type { CareTeamsStackParamList, MyMedsStackParamList } from '../case/navigationTypes';
 import { CasePageScreen } from '../case/CasePageScreen';
 import { BrandDraftScreen } from '../scan/BrandDraftScreen';
 import { BrandPackageCaptureScreen } from '../scan/BrandPackageCaptureScreen';
@@ -18,6 +18,7 @@ import type { SearchStackParamList } from '../search/navigationTypes';
 import { PlaylistsHomeScreen } from '../playlists/PlaylistsHomeScreen';
 import { PlaylistDetailScreen } from '../playlists/PlaylistDetailScreen';
 import { CareTeamsScreen } from '../careteams/CareTeamsScreen';
+import { HospitalDetailScreen } from '../careteams/HospitalDetailScreen';
 import { HomeScanScreen } from '../screens/HomeScanScreen';
 import { MyMedsScreen } from '../screens/MyMedsScreen';
 import { SavedMedsScreen } from '../screens/SavedMedsScreen';
@@ -29,6 +30,7 @@ const Tab = createBottomTabNavigator();
 const ScanStack = createNativeStackNavigator<ScanStackParamList>();
 const MyMedsStack = createNativeStackNavigator<MyMedsStackParamList>();
 const SearchStack = createNativeStackNavigator<SearchStackParamList>();
+const CareTeamsStack = createNativeStackNavigator<CareTeamsStackParamList>();
 
 function HomeScanNavigator() {
   const { t } = useTranslation();
@@ -104,6 +106,25 @@ function SearchNavigator() {
   );
 }
 
+function CareTeamsNavigator() {
+  const { t } = useTranslation();
+
+  return (
+    <CareTeamsStack.Navigator
+      initialRouteName="CareTeamsHome"
+      screenOptions={{
+        contentStyle: {
+          backgroundColor: colors.background,
+        },
+        headerShadowVisible: false,
+      }}
+    >
+      <CareTeamsStack.Screen component={CareTeamsScreen} name="CareTeamsHome" options={{ headerShown: false }} />
+      <CareTeamsStack.Screen component={HospitalDetailScreen} name="HospitalDetail" options={{ headerShown: false }} />
+    </CareTeamsStack.Navigator>
+  );
+}
+
 export function PatientTabs() {
   const { t } = useTranslation();
 
@@ -150,7 +171,7 @@ export function PatientTabs() {
             },
           }}
         />
-        <Tab.Screen name="CareTeams" component={CareTeamsScreen} options={{ title: t('careTeamsTab') }} />
+        <Tab.Screen name="CareTeams" component={CareTeamsNavigator} options={{ title: t('careTeamsTab') }} />
         <Tab.Screen name="Settings" component={SettingsScreen} options={{ title: t('settingsTab') }} />
       </Tab.Navigator>
     </NavigationContainer>
