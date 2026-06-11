@@ -29,6 +29,10 @@ export async function getPlaylists(): Promise<Playlist[]> {
   return data ?? [];
 }
 
+function stripDosage(name: string): string {
+  return name.replace(/\s+\d+(\.\d+)?\s*(MG|GM|MCG|ML|IU|MEQ|MMOL|UNIT|UNITS|%)\s*$/i, '');
+}
+
 export async function getPlaylistIngredientIds(
   playlistId: string,
   client: AppSupabaseClient = getSupabaseClient(),
@@ -37,17 +41,106 @@ export async function getPlaylistIngredientIds(
     .rpc('get_playlist_items', { p_playlist_id: playlistId });
   if (itemsError) throw itemsError;
 
-  const nhiCodes = (items ?? []).map((item: any) => item.nhi_code).filter(Boolean) as string[];
-  if (!nhiCodes.length) return [];
+  if (!items?.length) return [];
 
-  const { data: piRows, error: piError } = await client
-    .from('rx_product_ingredients')
-    .select('ingredient_id')
-    .in('nhi_code', nhiCodes);
-  if (piError) throw piError;
+  const seenIngredientIds = new Set<string>();
 
-  const ids = (piRows ?? []).map((r: any) => r.ingredient_id).filter(Boolean) as string[];
-  return Array.from(new Set(ids));
+  // 1a. Resolve by NHI code
+  const nhiCodes = items
+    .map((item: any) => item.nhi_code)
+    .filter(Boolean) as string[];
+
+  const matchedNhiCodes = new Set<string>();
+
+  if (nhiCodes.length > 0) {
+    const { data: piRows, error: piError } = await client
+      .from('rx_product_ingredients')
+      .select('nhi_code, ingredient_id')
+      .in('nhi_code', nhiCodes);
+    if (piError) throw piError;
+
+    if (piRows?.length) {
+      for (const row of piRows) {
+        if (row.ingredient_id) {
+          seenIngredientIds.add(row.ingredient_id);
+          matchedNhiCodes.add(row.nhi_code);
+        }
+      }
+    }
+  }
+
+  // 1b. Name fallback for items not resolved by NHI
+  const unresolvedItems = items.filter(
+    (item: any) =>
+      item.name_en &&
+      (!item.nhi_code || !matchedNhiCodes.has(item.nhi_code)),
+  );
+
+  for (const item of unresolvedItems) {
+    const cleanedName = (item.name_en ?? '').replace(/^["']|["']$/g, '');
+    if (!cleanedName) continue;
+
+    const { data: nameRows, error: nameError } = await client
+      .from('rx_ingredient_concepts')
+      .select('ingredient_id')
+      .ilike('canonical_name', `${cleanedName}%`);
+    if (nameError) throw nameError;
+
+    if (nameRows?.length) {
+      for (const row of nameRows) {
+        if (row.ingredient_id) {
+          seenIngredientIds.add(row.ingredient_id);
+        }
+      }
+    }
+  }
+
+  if (seenIngredientIds.size === 0) return [];
+
+  // 2. Map dosage-specific ingredients to base (no-dosage) ingredients
+  const ids = Array.from(seenIngredientIds);
+  const { data: concepts, error: conceptsError } = await client
+    .from('rx_ingredient_concepts')
+    .select('ingredient_id, canonical_name')
+    .in('ingredient_id', ids);
+  if (conceptsError) throw conceptsError;
+  if (!concepts?.length) return [];
+
+  const baseIds = new Set<string>();
+  const strippedToOriginal = new Map<string, string>();
+
+  for (const c of concepts) {
+    const stripped = stripDosage(c.canonical_name);
+    if (stripped !== c.canonical_name) {
+      strippedToOriginal.set(stripped, c.ingredient_id);
+    } else {
+      baseIds.add(c.ingredient_id);
+    }
+  }
+
+  if (strippedToOriginal.size > 0) {
+    const strippedNames = Array.from(strippedToOriginal.keys());
+    const { data: baseRows, error: baseError } = await client
+      .from('rx_ingredient_concepts')
+      .select('ingredient_id, canonical_name')
+      .in('canonical_name', strippedNames);
+    if (baseError) throw baseError;
+
+    const foundNames = new Set((baseRows ?? []).map(r => r.canonical_name));
+    for (const row of baseRows ?? []) {
+      if (row.ingredient_id) {
+        baseIds.add(row.ingredient_id);
+      }
+    }
+
+    for (const [strippedName, originalId] of strippedToOriginal) {
+      if (!foundNames.has(strippedName)) {
+        baseIds.add(originalId);
+      }
+    }
+  }
+
+  return Array.from(baseIds);
 }
 
 export async function getPlaylistItems(playlistId: string): Promise<PlaylistItem[]> {
