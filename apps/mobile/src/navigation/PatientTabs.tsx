@@ -17,7 +17,7 @@ import { DrugDetailScreen } from '../search/DrugDetailScreen';
 import type { SearchStackParamList } from '../search/navigationTypes';
 import { PlaylistsHomeScreen } from '../playlists/PlaylistsHomeScreen';
 import { PlaylistDetailScreen } from '../playlists/PlaylistDetailScreen';
-import { CareTeamsScreen } from '../screens/CareTeamsScreen';
+import { CareTeamsScreen } from '../careteams/CareTeamsScreen';
 import { HomeScanScreen } from '../screens/HomeScanScreen';
 import { MyMedsScreen } from '../screens/MyMedsScreen';
 import { SavedMedsScreen } from '../screens/SavedMedsScreen';

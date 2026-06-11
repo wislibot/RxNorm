@@ -186,5 +186,14 @@
   "duplicateAlertTitle": "Duplicate Ingredients",
   "duplicateAlertMessage": "You already have another brand with the same ingredients inside this druglist: {{names}}",
   "duplicateAlertAddAnyway": "Add Anyway",
-  "duplicateAlertCancel": "Cancel"
+  "duplicateAlertCancel": "Cancel",
+  "careTeamsTitle": "Care Teams",
+  "careTeamsSearchPlaceholder": "Search hospitals...",
+  "careTeamsSearchResults": "Search Results",
+  "careTeamsMyHospitals": "My Hospitals",
+  "careTeamsNoResults": "No hospitals found",
+  "careTeamsNoHospitals": "No hospitals added yet. Search to find and add hospitals.",
+  "careTeamsTypeToSearch": "Type to search for hospitals",
+  "careTeamsAdded": "Added!",
+  "careTeamsAlreadyAdded": "Already added"
 }

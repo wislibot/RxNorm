@@ -186,5 +186,14 @@
   "duplicateAlertTitle": "成分重複",
   "duplicateAlertMessage": "此藥品清單中已有相同成分的其他品牌：{{names}}",
   "duplicateAlertAddAnyway": "仍然加入",
-  "duplicateAlertCancel": "取消"
+  "duplicateAlertCancel": "取消",
+  "careTeamsTitle": "醫療團隊",
+  "careTeamsSearchPlaceholder": "搜尋醫院...",
+  "careTeamsSearchResults": "搜尋結果",
+  "careTeamsMyHospitals": "我的醫院",
+  "careTeamsNoResults": "找不到醫院",
+  "careTeamsNoHospitals": "尚未新增醫院。搜尋並新增您就診的醫院。",
+  "careTeamsTypeToSearch": "輸入關鍵字搜尋醫院",
+  "careTeamsAdded": "已新增！",
+  "careTeamsAlreadyAdded": "已新增過"
 }
