@@ -60,6 +60,7 @@ export type CaseRecord = {
   ingredientIds: string[];
   shareToAllCareTeams: boolean;
   caseGroupId?: string;
+  caseName: string | null;
 };
 
 export type CaseSummary = {
@@ -70,4 +71,5 @@ export type CaseSummary = {
   firstThumbUrl: string | null;
   ocrPreview: string;
   detectedItemCount: number;
+  caseName: string | null;
 };

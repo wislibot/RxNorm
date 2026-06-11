@@ -46,6 +46,7 @@ type RxCaseRow = {
   photo_paths: string[] | null;
   ingredient_ids: string[] | null;
   share_to_all_care_teams: boolean;
+  case_name: string | null;
 };
 
 type RxMedicationLineMatchRow = {
@@ -568,7 +569,7 @@ export async function getCase(caseId: string, client: AppSupabaseClient = getSup
 
   const { data, error } = await client
     .from('rx_cases')
-    .select('case_id, case_type, created_at, updated_at, ocr_raw_text, ocr_sections, detected_items, photo_paths, ingredient_ids, share_to_all_care_teams, case_group_id')
+    .select('case_id, case_type, created_at, updated_at, ocr_raw_text, ocr_sections, detected_items, photo_paths, ingredient_ids, share_to_all_care_teams, case_group_id, case_name')
     .eq('case_id', caseId)
     .single();
 
@@ -584,6 +585,7 @@ export async function getCase(caseId: string, client: AppSupabaseClient = getSup
 
   return {
     caseId: row.case_id,
+    caseName: row.case_name,
     caseType: row.case_type,
     createdAt: row.created_at,
     detectedItems: mapDetectedItemsFromDb(row.detected_items),
@@ -618,7 +620,7 @@ export async function getCaseGroupCases(
 
   const { data, error } = await client
     .from('rx_cases')
-    .select('case_id, case_type, created_at, updated_at, ocr_raw_text, ocr_sections, detected_items, photo_paths, ingredient_ids, share_to_all_care_teams, case_group_id')
+    .select('case_id, case_type, created_at, updated_at, ocr_raw_text, ocr_sections, detected_items, photo_paths, ingredient_ids, share_to_all_care_teams, case_group_id, case_name')
     .eq('case_group_id', caseGroupId);
 
   if (error) {
@@ -636,6 +638,7 @@ export async function getCaseGroupCases(
 
       return {
         caseId: row.case_id,
+        caseName: row.case_name,
         caseType: row.case_type,
         createdAt: row.created_at,
         detectedItems: mapDetectedItemsFromDb(row.detected_items),
@@ -672,7 +675,7 @@ export async function listCases(
 
   const { data, error } = await client
     .from('rx_cases')
-    .select('case_id, case_type, created_at, ocr_raw_text, detected_items, photo_paths')
+    .select('case_id, case_type, created_at, ocr_raw_text, detected_items, photo_paths, case_name')
     .order('created_at', { ascending: false })
     .limit(limit);
 
@@ -680,7 +683,7 @@ export async function listCases(
     throw error;
   }
 
-  const rows = (data ?? []) as Array<Pick<RxCaseRow, 'case_id' | 'case_type' | 'created_at' | 'ocr_raw_text' | 'detected_items' | 'photo_paths'>>;
+  const rows = (data ?? []) as Array<Pick<RxCaseRow, 'case_id' | 'case_type' | 'created_at' | 'ocr_raw_text' | 'detected_items' | 'photo_paths' | 'case_name'>>;
 
   return Promise.all(
     rows.map(async (row) => {
@@ -715,6 +718,7 @@ export async function listCases(
 
       return {
         caseId: row.case_id,
+        caseName: row.case_name,
         caseType: row.case_type,
         createdAt: row.created_at,
         detectedItemCount: detectedItems.length,
@@ -724,6 +728,16 @@ export async function listCases(
       };
     }),
   );
+}
+
+export async function renameCase(caseId: string, name: string, client: AppSupabaseClient = getSupabaseClient()): Promise<void> {
+  const { error } = await client.rpc('rename_case', { p_case_id: caseId, p_name: name });
+  if (error) throw error;
+}
+
+export async function deleteCase(caseId: string, client: AppSupabaseClient = getSupabaseClient()): Promise<void> {
+  const { error } = await client.rpc('delete_case', { p_case_id: caseId });
+  if (error) throw error;
 }
 
 export async function getMockAutoShareStatus(): Promise<AutoShareStatus> {

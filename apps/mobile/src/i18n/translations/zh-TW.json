@@ -206,5 +206,14 @@
   "hospitalDetailNoCases": "尚無掃描紀錄",
   "hospitalDetailUntitled": "未命名掃描",
   "hospitalDetailNoDruglists": "尚無藥品清單",
-  "casePageShareButton": "分享"
+  "casePageShareButton": "分享",
+  "nameCaseTitle": "為此案例命名",
+  "nameCasePlaceholder": "例如：6/12醫院就診",
+  "nameCaseSave": "儲存",
+  "nameCaseSkip": "略過",
+  "caseRename": "重新命名",
+  "caseDelete": "刪除",
+  "caseDeleteConfirm": "確定要刪除此案例嗎？",
+  "caseDeleted": "案例已刪除",
+  "caseUntitled": "未命名掃描"
 }

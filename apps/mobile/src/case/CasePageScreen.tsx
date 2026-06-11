@@ -1,10 +1,10 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Dimensions, Image, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Dimensions, Image, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import type { RouteProp } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 
-import { getCase, getCaseGroupCases } from '../api/case';
+import { getCase, getCaseGroupCases, renameCase } from '../api/case';
 import { getCaseDdiByIngredients } from '../api/ddi';
 import { addToPlaylist } from '../api/playlists';
 import type { DrugSearchResult } from '../api/drugs';
@@ -137,6 +137,8 @@ export function CasePageScreen({ route }: Props) {
   const [photoModal, setPhotoModal] = useState<PhotoModalState>({ visible: false, index: 0 });
   const [playlistModalDrug, setPlaylistModalDrug] = useState<DrugSearchResult | null>(null);
   const [playlistModalDrugs, setPlaylistModalDrugs] = useState<DrugSearchResult[] | null>(null);
+  const [showNameModal, setShowNameModal] = useState(false);
+  const [caseNameInput, setCaseNameInput] = useState('');
 
   useEffect(() => {
     let isMounted = true;
@@ -188,6 +190,13 @@ export function CasePageScreen({ route }: Props) {
 
         setCaseRecord(mergedCase);
         setDdiResult(ddi);
+
+        if (!mergedCase.caseName) {
+          const medicationName = mergedCase.ocrSections?.remoteModel?.case_fields?.medicationName;
+          const dateStr = new Date(mergedCase.createdAt).toLocaleDateString();
+          setCaseNameInput(medicationName?.trim() || `${t('caseUntitled')} ${dateStr}`);
+          setShowNameModal(true);
+        }
       } catch {
         if (!isMounted) {
           return;
@@ -618,7 +627,7 @@ export function CasePageScreen({ route }: Props) {
     <>
       <ScrollView contentContainerStyle={styles.page}>
         <View style={styles.card}>
-          <Text style={styles.title}>{t('casePageTitle')}</Text>
+          <Text style={styles.title}>{caseRecord.caseName || t('casePageTitle')}</Text>
           <Text style={styles.subtitle}>{createdAtLabel}</Text>
         </View>
 
@@ -694,6 +703,52 @@ export function CasePageScreen({ route }: Props) {
         recordId={caseId}
         onClose={() => setShareModalVisible(false)}
       />
+      <Modal visible={showNameModal} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setShowNameModal(false)}>
+        <View style={styles.nameModal}>
+          <View style={styles.nameModalHeader}>
+            <Text style={styles.nameModalTitle}>{t('nameCaseTitle')}</Text>
+          </View>
+          <View style={styles.nameModalBody}>
+            <TextInput
+              style={styles.nameModalInput}
+              value={caseNameInput}
+              onChangeText={setCaseNameInput}
+              placeholder={t('nameCasePlaceholder')}
+              autoFocus
+              selectTextOnFocus
+            />
+            <View style={styles.nameModalButtons}>
+              <Pressable
+                onPress={() => {
+                  setShowNameModal(false);
+                }}
+                style={({ pressed }) => [styles.nameModalButton, styles.nameModalSkipButton, pressed && styles.nameModalButtonPressed]}
+              >
+                <Text style={styles.nameModalSkipText}>{t('nameCaseSkip')}</Text>
+              </Pressable>
+              <Pressable
+                onPress={async () => {
+                  const name = caseNameInput.trim();
+                  if (!name) {
+                    setShowNameModal(false);
+                    return;
+                  }
+                  try {
+                    await renameCase(caseId, name);
+                    setCaseRecord((prev) => (prev ? { ...prev, caseName: name } : prev));
+                  } catch {
+                    // silently fail
+                  }
+                  setShowNameModal(false);
+                }}
+                style={({ pressed }) => [styles.nameModalButton, styles.nameModalSaveButton, pressed && styles.nameModalButtonPressed]}
+              >
+                <Text style={styles.nameModalSaveText}>{t('nameCaseSave')}</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </>
   );
 }
@@ -1040,5 +1095,65 @@ const styles = StyleSheet.create({
   },
   addItemButtonPressed: {
     opacity: 0.7,
+  },
+  nameModal: {
+    backgroundColor: colors.background,
+    flex: 1,
+  },
+  nameModalHeader: {
+    borderBottomColor: colors.border,
+    borderBottomWidth: 1,
+    padding: spacing.lg,
+    paddingBottom: spacing.md,
+  },
+  nameModalTitle: {
+    color: colors.text,
+    fontSize: typography.title,
+    fontWeight: '700',
+  },
+  nameModalBody: {
+    gap: spacing.lg,
+    padding: spacing.lg,
+  },
+  nameModalInput: {
+    backgroundColor: colors.card,
+    borderColor: colors.primary,
+    borderRadius: radius.md,
+    borderWidth: 1.5,
+    color: colors.text,
+    fontSize: typography.body,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+  nameModalButtons: {
+    flexDirection: 'row',
+    gap: spacing.md,
+    justifyContent: 'flex-end',
+  },
+  nameModalButton: {
+    borderRadius: radius.lg,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+  },
+  nameModalSaveButton: {
+    backgroundColor: colors.primary,
+  },
+  nameModalSkipButton: {
+    backgroundColor: colors.card,
+    borderColor: colors.border,
+    borderWidth: 1,
+  },
+  nameModalButtonPressed: {
+    opacity: 0.8,
+  },
+  nameModalSaveText: {
+    color: '#FFFFFF',
+    fontSize: typography.body,
+    fontWeight: '600',
+  },
+  nameModalSkipText: {
+    color: colors.textMuted,
+    fontSize: typography.body,
+    fontWeight: '600',
   },
 });

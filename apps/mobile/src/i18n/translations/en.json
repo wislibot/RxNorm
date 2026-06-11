@@ -206,5 +206,14 @@
   "hospitalDetailNoCases": "No scan history yet",
   "hospitalDetailUntitled": "Untitled Scan",
   "hospitalDetailNoDruglists": "No druglists yet",
-  "casePageShareButton": "Share"
+  "casePageShareButton": "Share",
+  "nameCaseTitle": "Name this case",
+  "nameCasePlaceholder": "e.g., Hospital visit 6/12",
+  "nameCaseSave": "Save",
+  "nameCaseSkip": "Skip",
+  "caseRename": "Rename",
+  "caseDelete": "Delete",
+  "caseDeleteConfirm": "Are you sure you want to delete this case?",
+  "caseDeleted": "Case deleted",
+  "caseUntitled": "Untitled Scan"
 }

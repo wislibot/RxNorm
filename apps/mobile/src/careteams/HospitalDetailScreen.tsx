@@ -16,6 +16,7 @@ type CaseSummary = {
   case_id: string;
   created_at: string;
   ocr_sections: any;
+  case_name: string | null;
 };
 
 type PlaylistSummary = {
@@ -109,6 +110,7 @@ export function HospitalDetailScreen({ route, navigation }: Props) {
   }, [hospitalId]);
 
   const getMedicationName = (item: CaseSummary): string => {
+    if (item.case_name) return item.case_name;
     const medicationName = item.ocr_sections?.case_fields?.medicationName;
     if (medicationName) return medicationName;
     const medicationLines = item.ocr_sections?.medicationLines;

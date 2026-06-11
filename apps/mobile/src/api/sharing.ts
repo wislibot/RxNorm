@@ -55,11 +55,11 @@ export async function unshareRecord(
   if (error) throw error;
 }
 
-export async function getMyCaseSummaries(): Promise<{ case_id: string; created_at: string; ocr_sections: any }[]> {
+export async function getMyCaseSummaries(): Promise<{ case_id: string; created_at: string; ocr_sections: any; case_name: string | null }[]> {
   const client = getSupabaseClient();
   const { data, error } = await client
     .from('rx_cases')
-    .select('case_id, created_at, ocr_sections')
+    .select('case_id, created_at, ocr_sections, case_name')
     .order('created_at', { ascending: false });
   if (error) throw error;
   return data ?? [];
