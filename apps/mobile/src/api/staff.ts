@@ -58,8 +58,9 @@ export interface SharedDruglistDetail {
 export async function isStaff(): Promise<boolean> {
   const client = getSupabaseClient();
   const { data, error } = await client.rpc('is_staff');
+  console.log('[staff.ts] isStaff RPC result:', { data, error });
   if (error) {
-    console.error('isStaff error:', error);
+    console.error('[staff.ts] isStaff error:', error);
     return false;
   }
   return data === true;

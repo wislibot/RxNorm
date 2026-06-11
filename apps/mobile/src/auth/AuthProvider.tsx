@@ -60,15 +60,19 @@ export function AuthProvider({ children, client = getSupabaseClient(), storage =
       // Detect staff role
       if (nextUser) {
         try {
+          console.log('[AuthProvider] Checking staff role for user:', nextUser.id);
           const staff = await isStaff();
+          console.log('[AuthProvider] isStaff result:', staff);
           setIsStaffUser(staff);
           if (staff) {
             const hospitals = await getStaffHospitals();
+            console.log('[AuthProvider] Staff hospitals:', hospitals);
             setStaffHospitals(hospitals);
           } else {
             setStaffHospitals([]);
           }
-        } catch {
+        } catch (err) {
+          console.error('[AuthProvider] Staff detection error:', err);
           setIsStaffUser(false);
           setStaffHospitals([]);
         }
