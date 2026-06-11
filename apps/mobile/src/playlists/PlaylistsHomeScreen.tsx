@@ -158,7 +158,7 @@ export function PlaylistsHomeScreen({ navigation }: Props) {
         </View>
       ) : playlists.length === 0 ? (
         <View style={styles.center}>
-          <Ionicons color={colors.textMuted} name="musical-notes-outline" size={48} />
+          <Ionicons color={colors.textMuted} name="medical-outline" size={48} />
           <Text style={styles.emptyText}>{t('playlistEmpty')}</Text>
         </View>
       ) : (

@@ -638,7 +638,7 @@ export function CasePageScreen({ route }: Props) {
             onPress={handleAddAllToPlaylist}
             style={({ pressed }) => [styles.playlistButton, pressed && styles.playlistButtonPressed]}
           >
-            <Ionicons color={colors.primary} name="musical-notes" size={20} />
+            <Ionicons color={colors.primary} name="medical" size={20} />
             <Text style={styles.playlistButtonText}>{t('casePageAddAllToPlaylist')}</Text>
           </Pressable>
         ) : null}

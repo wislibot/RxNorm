@@ -163,7 +163,7 @@ export function SaveToPlaylistModal({ visible, drug, drugs, onSelectSaved, onSel
                 onPress={handleChoosePlaylists}
                 style={({ pressed }) => [styles.optionButton, pressed && styles.optionButtonPressed]}
               >
-                <Ionicons color={colors.primary} name="musical-notes" size={22} />
+                <Ionicons color={colors.primary} name="medical" size={22} />
                 <Text style={styles.optionText}>{t('saveModalToPlaylist')}</Text>
               </Pressable>
               <Pressable
