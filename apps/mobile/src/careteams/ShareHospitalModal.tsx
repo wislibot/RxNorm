@@ -77,7 +77,7 @@ export function ShareHospitalModal({ visible, recordType, recordId, onClose }: P
       <View style={styles.modal}>
         <View style={styles.modalHeader}>
           <Text style={styles.modalTitle}>{t('shareModalTitle')}</Text>
-          <Pressable onPress={onClose} hitSlop={8}>
+          <Pressable onPress={onClose} hitSlop={8} style={({ pressed }) => [styles.doneButton, pressed && styles.doneButtonPressed]}>
             <Text style={styles.modalDoneText}>{t('shareModalDone')}</Text>
           </Pressable>
         </View>
@@ -126,20 +126,29 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   modalHeader: {
-    alignItems: 'center',
     borderBottomColor: colors.border,
     borderBottomWidth: 1,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    gap: spacing.sm,
     padding: spacing.lg,
+    paddingBottom: spacing.md,
   },
   modalTitle: {
     color: colors.text,
     fontSize: typography.title,
     fontWeight: '700',
   },
+  doneButton: {
+    alignSelf: 'flex-end',
+    backgroundColor: colors.primary,
+    borderRadius: radius.lg,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+  },
+  doneButtonPressed: {
+    opacity: 0.8,
+  },
   modalDoneText: {
-    color: colors.primary,
+    color: '#FFFFFF',
     fontSize: typography.body,
     fontWeight: '600',
   },
