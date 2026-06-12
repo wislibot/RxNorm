@@ -359,7 +359,7 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   addedBadge: {
-    backgroundColor: '#E9F2FF',
+    backgroundColor: '#E8F8EE',
     borderRadius: radius.pill,
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xs / 2,
