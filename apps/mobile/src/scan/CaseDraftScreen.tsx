@@ -117,12 +117,6 @@ export function CaseDraftScreen({ navigation, route }: Props) {
         </Pressable>
       </View>
 
-      <View style={styles.card}>
-        <Text style={styles.sectionTitle}>{t('caseDraftDetectedItemsLabel')}</Text>
-        <Text style={styles.body}>1. {t('caseDraftDetectedItemOne')}</Text>
-        <Text style={styles.body}>2. {t('caseDraftDetectedItemTwo')}</Text>
-        <Text style={styles.body}>{t('caseDraftNextStep')}</Text>
-      </View>
     </ScrollView>
   );
 }
