@@ -619,6 +619,8 @@ export function CasePageScreen({ route }: Props) {
 
         {renderCaseSummary()}
 
+        <View style={styles.sectionDivider} />
+
         {(caseRecord?.detectedItems.length ?? 0) > 0 ? (
           <Pressable
             onPress={handleAddAllToPlaylist}
@@ -631,6 +633,8 @@ export function CasePageScreen({ route }: Props) {
 
         {renderPhotoStrip()}
 
+        <View style={styles.sectionDivider} />
+
         <Pressable
           onPress={() => setShareModalVisible(true)}
           style={({ pressed }) => [styles.playlistButton, pressed && styles.playlistButtonPressed]}
@@ -640,15 +644,22 @@ export function CasePageScreen({ route }: Props) {
         </Pressable>
 
       {caseRecord.ocrSections.instructionLines.length > 0 ? (
-        <View style={styles.card}>
-          <Text style={styles.sectionTitle}>{t('casePageInstructionTitle')}</Text>
-          <Text style={styles.body}>
-            {filterInstructionLines(caseRecord.ocrSections.instructionLines).join('\n')}
-          </Text>
-        </View>
+        <>
+          <View style={styles.sectionDivider} />
+          <View style={styles.card}>
+            <Text style={styles.sectionTitle}>{t('casePageInstructionTitle')}</Text>
+            <Text style={styles.body}>
+              {filterInstructionLines(caseRecord.ocrSections.instructionLines).join('\n')}
+            </Text>
+          </View>
+        </>
       ) : null}
 
+      <View style={styles.sectionDivider} />
+
       {renderDetectedItemsSection()}
+
+      <View style={styles.sectionDivider} />
 
       <View style={styles.card}>
         <Text style={styles.sectionTitle}>{t('casePageDdiTitle')}</Text>
@@ -761,6 +772,11 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
     fontSize: typography.body,
     lineHeight: 26,
+  },
+  sectionDivider: {
+    borderBottomColor: colors.border,
+    borderBottomWidth: 1,
+    marginVertical: spacing.sm,
   },
   sectionTitle: {
     color: colors.text,
@@ -971,6 +987,16 @@ const styles = StyleSheet.create({
     backgroundColor: colors.warningBackground,
     borderRadius: radius.md,
     padding: spacing.md,
+  },
+  warningText: {
+    color: colors.warningText,
+    fontSize: typography.body,
+    lineHeight: 28,
+  },
+  body: {
+    color: colors.text,
+    fontSize: typography.body,
+    lineHeight: 26,
   },
   ingredientPairText: {
     color: colors.text,

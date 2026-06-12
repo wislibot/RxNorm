@@ -92,6 +92,15 @@ export function CaseHistoryScreen({ navigation }: Props) {
         </View>
       ) : null}
 
+      {!loadError && cases.length === 0 ? (
+        <View style={styles.emptyState}>
+          <View style={styles.emptyIconCircle}>
+            <Ionicons color={colors.primary} name="scan-outline" size={32} />
+          </View>
+          <Text style={styles.emptyTitle}>{t('scanHistoryEmpty')}</Text>
+        </View>
+      ) : null}
+
       {cases.map((item) => {
         const isEditing = editingCaseId === item.caseId;
         return (
@@ -210,6 +219,25 @@ const styles = StyleSheet.create({
     color: colors.warningText,
     fontSize: typography.body,
     lineHeight: 28,
+  },
+  emptyState: {
+    alignItems: 'center',
+    gap: spacing.md,
+    paddingVertical: spacing.xl,
+  },
+  emptyIconCircle: {
+    alignItems: 'center',
+    backgroundColor: '#E8F8EE',
+    borderRadius: 28,
+    height: 56,
+    justifyContent: 'center',
+    width: 56,
+  },
+  emptyTitle: {
+    color: colors.textMuted,
+    fontSize: typography.body,
+    lineHeight: 26,
+    textAlign: 'center',
   },
   caseName: {
     color: colors.text,

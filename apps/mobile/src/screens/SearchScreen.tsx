@@ -292,6 +292,7 @@ export function SearchScreen({ navigation }: Props) {
         <View style={styles.center}>
           <Ionicons color={colors.textMuted} name="search-outline" size={48} />
           <Text style={styles.emptyText}>{t('searchNoResults')}</Text>
+          <Text style={styles.emptyHint}>{t('searchNoResultsHint')}</Text>
         </View>
       ) : !debouncedQuery.trim() ? (
         <View style={styles.center}>
@@ -388,6 +389,13 @@ const styles = StyleSheet.create({
     fontSize: typography.body,
     lineHeight: 28,
     textAlign: 'center',
+  },
+  emptyHint: {
+    color: colors.textMuted,
+    fontSize: typography.label,
+    lineHeight: 22,
+    textAlign: 'center',
+    opacity: 0.7,
   },
   errorText: {
     color: colors.textMuted,
