@@ -349,21 +349,7 @@ export function CasePageScreen({ route }: Props) {
             </Pressable>
           </View>
         </View>
-        <View style={styles.metaRow}>
-          {group.confidence !== null ? (
-            <View style={styles.confidenceBadge}>
-              <Text style={styles.confidenceBadgeText}>
-                {t('casePageConfidenceLabel', {
-                  value: Math.round(group.confidence * 100),
-                })}
-              </Text>
-            </View>
-          ) : (
-            <View style={styles.pendingBadge}>
-              <Text style={styles.pendingBadgeText}>{t('casePageConfidencePending')}</Text>
-            </View>
-          )}
-        </View>
+
         {activeIngredientNames.length > 0 ? (
           <View style={styles.ingredientRow}>
             <Text style={styles.ingredientLabel}>{t('casePageActiveIngredientsLabel')}</Text>
@@ -934,12 +920,6 @@ const styles = StyleSheet.create({
     fontSize: typography.body,
     lineHeight: 24,
   },
-  metaRow: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.sm,
-  },
   ingredientRow: {
     alignItems: 'flex-start',
     flexDirection: 'row',
@@ -981,28 +961,6 @@ const styles = StyleSheet.create({
   },
   unmatchedBadgeText: {
     color: colors.warningText,
-  },
-  confidenceBadge: {
-    backgroundColor: '#E9F2FF',
-    borderRadius: radius.pill,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
-  },
-  confidenceBadgeText: {
-    color: colors.primary,
-    fontSize: typography.label,
-    fontWeight: '700',
-  },
-  pendingBadge: {
-    backgroundColor: colors.border,
-    borderRadius: radius.pill,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
-  },
-  pendingBadgeText: {
-    color: colors.textMuted,
-    fontSize: typography.label,
-    fontWeight: '700',
   },
   metaText: {
     color: colors.textMuted,
