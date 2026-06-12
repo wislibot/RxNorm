@@ -214,6 +214,7 @@
   "caseRename": "重新命名",
   "caseDelete": "刪除",
   "caseDeleteConfirm": "確定要刪除此案例嗎？",
+  "commonCancel": "取消",
   "caseDeleted": "案例已刪除",
   "caseUntitled": "未命名掃描",
 

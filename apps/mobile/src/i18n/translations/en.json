@@ -214,6 +214,7 @@
   "caseRename": "Rename",
   "caseDelete": "Delete",
   "caseDeleteConfirm": "Are you sure you want to delete this case?",
+  "commonCancel": "Cancel",
   "caseDeleted": "Case deleted",
   "caseUntitled": "Untitled Scan",
 
