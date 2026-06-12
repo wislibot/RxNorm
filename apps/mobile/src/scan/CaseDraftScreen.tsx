@@ -1,12 +1,11 @@
 import React, { useMemo, useRef, useState } from 'react';
-import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useTranslation } from 'react-i18next';
 
 import { createCase } from '../api/case';
-import { mapOcrSections, type SectionedOcr } from '../ocr/sectionMapper';
+import { mapOcrSections } from '../ocr/sectionMapper';
 import { isOcrUnavailableError, runOcrOnImagesStructured } from '../ocr/ocr';
-import type { OcrResult } from '../ocr/types';
 import { colors, radius, spacing, typography } from '../theme/tokens';
 import type { ScanStackParamList } from './types';
 
@@ -15,13 +14,8 @@ type Props = NativeStackScreenProps<ScanStackParamList, 'CaseDraft'>;
 export function CaseDraftScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { photos } = route.params;
-  const [isRunningOcr, setIsRunningOcr] = useState(false);
-  const [rawText, setRawText] = useState('');
-  const [ocrAttempted, setOcrAttempted] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   const [friendlyMessage, setFriendlyMessage] = useState('');
-  const [isSavingCase, setIsSavingCase] = useState(false);
-  const [sectionedOcr, setSectionedOcr] = useState<SectionedOcr | undefined>(undefined);
-  const [perPhotoOcrResults, setPerPhotoOcrResults] = useState<OcrResult[] | undefined>(undefined);
   const ocrInFlight = useRef(false);
 
   const photoUris = useMemo(() => photos.map((photo) => photo.uri), [photos]);
@@ -39,44 +33,28 @@ export function CaseDraftScreen({ navigation, route }: Props) {
     return t('ocrFriendlyError');
   };
 
-  const handleRunOcr = async () => {
+  const handleCreateCase = async () => {
     if (ocrInFlight.current) return;
     ocrInFlight.current = true;
 
-    if (__DEV__) console.log('[OCR] run count CaseDraft');
-
-    setIsRunningOcr(true);
+    setIsProcessing(true);
     setFriendlyMessage('');
+
     try {
+      // Step 1: Run OCR
       const structured = await runOcrOnImagesStructured(photoUris);
-      setRawText(structured.text);
-      setSectionedOcr(structured.blocks.length > 0 ? mapOcrSections(structured) : undefined);
-      setPerPhotoOcrResults(structured.perPhoto);
-      setOcrAttempted(true);
-      if (!structured.text.trim()) {
-        setFriendlyMessage(t('ocrFriendlyError'));
-      }
-    } catch (error) {
-      setRawText('');
-      setSectionedOcr(undefined);
-      if (isOcrUnavailableError(error)) {
-        setOcrAttempted(false);
-        setFriendlyMessage(getOcrErrorMessage(error));
-      } else {
-        setOcrAttempted(true);
-        setFriendlyMessage(t('ocrFriendlyError'));
-      }
-    } finally {
-      setIsRunningOcr(false);
-      ocrInFlight.current = false;
-    }
-  };
+      const rawText = structured.text;
+      const sectionedOcr = structured.blocks.length > 0 ? mapOcrSections(structured) : undefined;
+      const perPhotoOcrResults = structured.perPhoto;
 
-  const handleCreateCase = async () => {
-    setIsSavingCase(true);
-    setFriendlyMessage('');
+      if (!rawText.trim()) {
+        setFriendlyMessage(t('ocrFriendlyError'));
+        setIsProcessing(false);
+        ocrInFlight.current = false;
+        return;
+      }
 
-    try {
+      // Step 2: Create case
       const { caseId } = await createCase({
         caseType: 'medicine_bag',
         ingredientIds: [],
@@ -88,10 +66,15 @@ export function CaseDraftScreen({ navigation, route }: Props) {
 
       navigation.navigate('CasePage', { caseId });
     } catch (error) {
-      console.error('[CaseDraft] createCase failed', error);
-      setFriendlyMessage(t('caseDraftSaveError'));
+      console.error('[CaseDraft] failed', error);
+      if (isOcrUnavailableError(error)) {
+        setFriendlyMessage(getOcrErrorMessage(error));
+      } else {
+        setFriendlyMessage(t('caseDraftSaveError'));
+      }
     } finally {
-      setIsSavingCase(false);
+      setIsProcessing(false);
+      ocrInFlight.current = false;
     }
   };
 
@@ -112,27 +95,26 @@ export function CaseDraftScreen({ navigation, route }: Props) {
       </View>
 
       <View style={styles.card}>
-        <Text style={styles.sectionTitle}>{t('caseDraftRawTextLabel')}</Text>
-        <Pressable
-          onPress={() => void handleRunOcr()}
-          style={({ pressed }) => [styles.primaryButton, pressed && styles.primaryButtonPressed]}
-        >
-          <Text style={styles.primaryButtonText}>{isRunningOcr ? t('ocrRunning') : t('runOcr')}</Text>
-        </Pressable>
         {friendlyMessage ? <Text style={styles.warningText}>{friendlyMessage}</Text> : null}
-        {ocrAttempted ? (
-          <ScrollView nestedScrollEnabled style={styles.rawTextBox}>
-            <Text style={styles.body}>{rawText || t('ocrEmptyState')}</Text>
-          </ScrollView>
-        ) : null}
-        {ocrAttempted && !isRunningOcr ? (
-          <Pressable
-            onPress={() => void handleCreateCase()}
-            style={({ pressed }) => [styles.primaryButton, pressed && styles.primaryButtonPressed]}
-          >
-            <Text style={styles.primaryButtonText}>{isSavingCase ? t('caseCreating') : t('createCasePage')}</Text>
-          </Pressable>
-        ) : null}
+
+        <Pressable
+          onPress={() => void handleCreateCase()}
+          disabled={isProcessing}
+          style={({ pressed }) => [
+            styles.primaryButton,
+            pressed && styles.primaryButtonPressed,
+            isProcessing && styles.primaryButtonDisabled,
+          ]}
+        >
+          {isProcessing ? (
+            <View style={styles.loadingRow}>
+              <ActivityIndicator color={colors.card} size="small" />
+              <Text style={styles.primaryButtonText}>{t('caseCreating')}</Text>
+            </View>
+          ) : (
+            <Text style={styles.primaryButtonText}>{t('createCasePage')}</Text>
+          )}
+        </Pressable>
       </View>
 
       <View style={styles.card}>
@@ -189,15 +171,6 @@ const styles = StyleSheet.create({
     fontSize: typography.body,
     lineHeight: 28,
   },
-  rawTextBox: {
-    backgroundColor: colors.background,
-    borderColor: colors.border,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    maxHeight: 220,
-    minHeight: 140,
-    padding: spacing.md,
-  },
   primaryButton: {
     alignItems: 'center',
     backgroundColor: colors.primary,
@@ -210,10 +183,18 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primaryPressed,
     opacity: 0.92,
   },
+  primaryButtonDisabled: {
+    opacity: 0.7,
+  },
   primaryButtonText: {
     color: colors.card,
     fontSize: typography.body,
     fontWeight: '700',
+  },
+  loadingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
   },
   warningText: {
     color: colors.warningText,
