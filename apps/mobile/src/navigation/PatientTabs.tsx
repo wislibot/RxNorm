@@ -8,8 +8,6 @@ import { useTranslation } from 'react-i18next';
 import { CaseHistoryScreen } from '../case/CaseHistoryScreen';
 import type { CareTeamsStackParamList, MyMedsStackParamList } from '../case/navigationTypes';
 import { CasePageScreen } from '../case/CasePageScreen';
-import { BrandDraftScreen } from '../scan/BrandDraftScreen';
-import { BrandPackageCaptureScreen } from '../scan/BrandPackageCaptureScreen';
 import { CaseDraftScreen } from '../scan/CaseDraftScreen';
 import { MedicineBagCaptureScreen } from '../scan/MedicineBagCaptureScreen';
 import type { ScanStackParamList } from '../scan/types';
@@ -19,7 +17,6 @@ import { PlaylistsHomeScreen } from '../playlists/PlaylistsHomeScreen';
 import { PlaylistDetailScreen } from '../playlists/PlaylistDetailScreen';
 import { CareTeamsScreen } from '../careteams/CareTeamsScreen';
 import { HospitalDetailScreen } from '../careteams/HospitalDetailScreen';
-import { HomeScanScreen } from '../screens/HomeScanScreen';
 import { MyMedsScreen } from '../screens/MyMedsScreen';
 import { SavedMedsScreen } from '../screens/SavedMedsScreen';
 import { SearchScreen } from '../screens/SearchScreen';
@@ -37,7 +34,7 @@ function HomeScanNavigator() {
 
   return (
     <ScanStack.Navigator
-      initialRouteName="HomeScanLanding"
+      initialRouteName="MedicineBagCapture"
       screenOptions={{
         contentStyle: {
           backgroundColor: colors.background,
@@ -45,20 +42,13 @@ function HomeScanNavigator() {
         headerShadowVisible: false,
       }}
     >
-      <ScanStack.Screen component={HomeScanScreen} name="HomeScanLanding" options={{ headerShown: false }} />
       <ScanStack.Screen
         component={MedicineBagCaptureScreen}
         name="MedicineBagCapture"
         options={{ title: t('medicineBag') }}
       />
-      <ScanStack.Screen
-        component={BrandPackageCaptureScreen}
-        name="BrandPackageCapture"
-        options={{ title: t('brandPackage') }}
-      />
       <ScanStack.Screen component={CaseDraftScreen} name="CaseDraft" options={{ title: t('caseDraftTitle') }} />
       <ScanStack.Screen component={CasePageScreen} name="CasePage" options={{ title: t('casePageTitle') }} />
-      <ScanStack.Screen component={BrandDraftScreen} name="BrandDraft" options={{ title: t('brandDraftTitle') }} />
     </ScanStack.Navigator>
   );
 }
